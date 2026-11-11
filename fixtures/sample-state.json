@@ -1,0 +1,122 @@
+{
+  "version": 47,
+  "serverTime": "2026-11-14T06:40:00.000Z",
+  "tvMode": "LEADERBOARD",
+  "liveEventId": 3,
+  "events": [
+    { "id": 1, "slug": "stubby-fan", "name": "Stubby Fan", "sin": "Sloth", "scoringType": "ELIMINATION", "status": "COMPLETED" },
+    { "id": 2, "slug": "krillion", "name": "Krillion", "sin": "Greed", "scoringType": "RAW_HIGH", "status": "COMPLETED" },
+    { "id": 3, "slug": "weekly-50", "name": "The Weekly 50", "sin": "Pride", "scoringType": "RAW_HIGH", "status": "LIVE" },
+    { "id": 4, "slug": "rock-hurl", "name": "Rock Hurl", "sin": "Wrath", "scoringType": "ELIMINATION", "status": "UPCOMING" },
+    { "id": 5, "slug": "fruit-split", "name": "50/50 Fruit Split", "sin": "Envy", "scoringType": "FRUIT_SPLIT", "status": "UPCOMING" },
+    { "id": 6, "slug": "grape-bobbing", "name": "Grape Bobbing", "sin": "Gluttony", "scoringType": "RAW_HIGH", "status": "UPCOMING" },
+    { "id": 7, "slug": "blood-on-the-creek", "name": "Blood on the Creek", "sin": "Lust", "scoringType": "BLOOD_MATRIX", "status": "UPCOMING" }
+  ],
+  "players": [
+    { "id": 1, "name": "Davo", "epithet": "The Balcony Lurker", "isActive": true, "jokerEventId": null, "rockCurseLevel": 2 },
+    { "id": 2, "name": "Chooka", "epithet": "Sovereign-in-Waiting", "isActive": true, "jokerEventId": 2, "rockCurseLevel": 0 },
+    { "id": 3, "name": "Spud", "epithet": "Saint of the Skillet", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 4, "name": "Nugget", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 5, "name": "Wazza", "epithet": "Last Fan Standing", "isActive": true, "jokerEventId": null, "rockCurseLevel": 1 },
+    { "id": 6, "name": "Bluey", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 7, "name": "Macca", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 8, "name": "Johnno", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 9, "name": "Robbo", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 10, "name": "Gazza", "epithet": "The Betrayed", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 11, "name": "Smithy", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 12, "name": "Deano", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 13, "name": "Tommo", "epithet": "Keeper of the Esky", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 }
+  ],
+  "leaderboard": [
+    { "playerId": 2, "name": "Chooka", "epithet": "Sovereign-in-Waiting", "rank": 1, "trend": 1, "total": 55, "eventPoints": { "1": 11, "2": 32, "3": 12 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": 2, "rockCurseLevel": 0 },
+    { "playerId": 1, "name": "Davo", "epithet": "The Balcony Lurker", "rank": 2, "trend": -1, "total": 54, "eventPoints": { "1": 16, "2": 20, "3": 16 }, "bloodTotal": 5, "decreeTotal": -3, "jokerEventId": null, "rockCurseLevel": 2 },
+    { "playerId": 4, "name": "Nugget", "epithet": "Tribute of the Creek", "rank": 3, "trend": 2, "total": 41, "eventPoints": { "1": 8, "2": 13, "3": 20 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 6, "name": "Bluey", "epithet": "Tribute of the Creek", "rank": 4, "trend": 0, "total": 32, "eventPoints": { "1": 10, "2": 11, "3": 11 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 3, "name": "Spud", "epithet": "Saint of the Skillet", "rank": 4, "trend": -1, "total": 32, "eventPoints": { "1": 14, "2": 13 }, "bloodTotal": 0, "decreeTotal": 5, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 8, "name": "Johnno", "epithet": "Tribute of the Creek", "rank": 6, "trend": 1, "total": 31, "eventPoints": { "1": 9, "2": 8, "5": 14 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 10, "name": "Gazza", "epithet": "The Betrayed", "rank": 7, "trend": -1, "total": 30, "eventPoints": { "1": 6, "2": 7, "5": 20 }, "bloodTotal": -3, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 5, "name": "Wazza", "epithet": "Last Fan Standing", "rank": 8, "trend": 0, "total": 29, "eventPoints": { "1": 20, "2": 9 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 1 },
+    { "playerId": 12, "name": "Deano", "epithet": "Tribute of the Creek", "rank": 9, "trend": 1, "total": 25, "eventPoints": { "1": 4, "2": 5, "5": 16 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 11, "name": "Smithy", "epithet": "Tribute of the Creek", "rank": 10, "trend": -1, "total": 23, "eventPoints": { "1": 5, "2": 4, "3": 14 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 7, "name": "Macca", "epithet": "Tribute of the Creek", "rank": 11, "trend": 0, "total": 22, "eventPoints": { "1": 12, "2": 10 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 9, "name": "Robbo", "epithet": "Tribute of the Creek", "rank": 12, "trend": 0, "total": 13, "eventPoints": { "1": 7, "2": 6 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 13, "name": "Tommo", "epithet": "Keeper of the Esky", "rank": 13, "trend": 0, "total": 8, "eventPoints": { "1": 3, "2": 3 }, "bloodTotal": 0, "decreeTotal": 2, "jokerEventId": null, "rockCurseLevel": 0 }
+  ],
+  "eventResults": {
+    "1": [
+      { "playerId": 5, "rawScore": null, "eliminationOrder": null, "livesRemaining": 2, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 1, "manualRankOverride": null, "basePoints": 20, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 20, "notes": null },
+      { "playerId": 1, "rawScore": null, "eliminationOrder": 12, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 2, "manualRankOverride": null, "basePoints": 16, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 16, "notes": null },
+      { "playerId": 3, "rawScore": null, "eliminationOrder": 11, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 3, "manualRankOverride": null, "basePoints": 14, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 14, "notes": null },
+      { "playerId": 7, "rawScore": null, "eliminationOrder": 10, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 4, "manualRankOverride": null, "basePoints": 12, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 12, "notes": null },
+      { "playerId": 2, "rawScore": null, "eliminationOrder": 9, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 5, "manualRankOverride": null, "basePoints": 11, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 11, "notes": null },
+      { "playerId": 6, "rawScore": null, "eliminationOrder": 8, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 6, "manualRankOverride": null, "basePoints": 10, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 10, "notes": null },
+      { "playerId": 8, "rawScore": null, "eliminationOrder": 7, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 7, "manualRankOverride": null, "basePoints": 9, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 9, "notes": null },
+      { "playerId": 4, "rawScore": null, "eliminationOrder": 6, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 8, "manualRankOverride": null, "basePoints": 8, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 8, "notes": null },
+      { "playerId": 9, "rawScore": null, "eliminationOrder": 5, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 9, "manualRankOverride": null, "basePoints": 7, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 7, "notes": null },
+      { "playerId": 10, "rawScore": null, "eliminationOrder": 4, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 10, "manualRankOverride": null, "basePoints": 6, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 6, "notes": null },
+      { "playerId": 11, "rawScore": null, "eliminationOrder": 3, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 11, "manualRankOverride": null, "basePoints": 5, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 5, "notes": null },
+      { "playerId": 12, "rawScore": null, "eliminationOrder": 2, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 12, "manualRankOverride": null, "basePoints": 4, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 4, "notes": null },
+      { "playerId": 13, "rawScore": null, "eliminationOrder": 1, "livesRemaining": 0, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 13, "manualRankOverride": null, "basePoints": 3, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 3, "notes": "First tribute to fall" }
+    ],
+    "2": [
+      { "playerId": 1, "rawScore": 95, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 1, "manualRankOverride": null, "basePoints": 20, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 20, "notes": null },
+      { "playerId": 2, "rawScore": 88, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 2, "manualRankOverride": null, "basePoints": 16, "jokerApplied": true, "manualPointsOverride": null, "finalEventPoints": 32, "notes": "Joker doubled" },
+      { "playerId": 3, "rawScore": 72, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 3, "manualRankOverride": null, "basePoints": 13, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 13, "notes": "Tied 3rd" },
+      { "playerId": 4, "rawScore": 72, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 4, "manualRankOverride": null, "basePoints": 13, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 13, "notes": "Tied 3rd" },
+      { "playerId": 6, "rawScore": 70, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 5, "manualRankOverride": null, "basePoints": 11, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 11, "notes": null },
+      { "playerId": 7, "rawScore": 64, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 6, "manualRankOverride": null, "basePoints": 10, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 10, "notes": null },
+      { "playerId": 5, "rawScore": 59, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 7, "manualRankOverride": null, "basePoints": 9, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 9, "notes": null },
+      { "playerId": 8, "rawScore": 55, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 8, "manualRankOverride": null, "basePoints": 8, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 8, "notes": null },
+      { "playerId": 10, "rawScore": 51, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 9, "manualRankOverride": null, "basePoints": 7, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 7, "notes": null },
+      { "playerId": 9, "rawScore": 44, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 10, "manualRankOverride": null, "basePoints": 6, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 6, "notes": null },
+      { "playerId": 12, "rawScore": 31, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 11, "manualRankOverride": null, "basePoints": 5, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 5, "notes": null },
+      { "playerId": 11, "rawScore": 28, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 12, "manualRankOverride": null, "basePoints": 4, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 4, "notes": null },
+      { "playerId": 13, "rawScore": 12, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 13, "manualRankOverride": null, "basePoints": 3, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 3, "notes": null }
+    ],
+    "3": [
+      { "playerId": 4, "rawScore": 41, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 1, "manualRankOverride": null, "basePoints": 20, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 20, "notes": null },
+      { "playerId": 1, "rawScore": 38, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 2, "manualRankOverride": null, "basePoints": 16, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 16, "notes": null },
+      { "playerId": 11, "rawScore": 33, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 3, "manualRankOverride": null, "basePoints": 14, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 14, "notes": null },
+      { "playerId": 2, "rawScore": 29, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 4, "manualRankOverride": null, "basePoints": 12, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 12, "notes": null },
+      { "playerId": 6, "rawScore": 22, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": null, "weightBGrams": null, "calculatedErrorPct": null, "calculatedRank": 5, "manualRankOverride": null, "basePoints": 11, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 11, "notes": null }
+    ],
+    "4": [],
+    "5": [
+      { "playerId": 10, "rawScore": null, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": 251.3, "weightBGrams": 248.9, "calculatedErrorPct": 0.24, "calculatedRank": 1, "manualRankOverride": null, "basePoints": 20, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 20, "notes": "Leader in the clubhouse" },
+      { "playerId": 12, "rawScore": null, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": 260, "weightBGrams": 240, "calculatedErrorPct": 2, "calculatedRank": 2, "manualRankOverride": null, "basePoints": 16, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 16, "notes": null },
+      { "playerId": 8, "rawScore": null, "eliminationOrder": null, "livesRemaining": null, "weightAGrams": 300, "weightBGrams": 255, "calculatedErrorPct": 4.054, "calculatedRank": 3, "manualRankOverride": null, "basePoints": 14, "jokerApplied": false, "manualPointsOverride": null, "finalEventPoints": 14, "notes": null }
+    ],
+    "6": []
+  },
+  "blood": {
+    "matchups": [
+      {
+        "id": 1, "roundNumber": 1, "matchupType": "1V1", "isRevealed": true,
+        "createdAt": "2026-11-14T06:10:00.000Z", "updatedAt": "2026-11-14T06:14:30.000Z",
+        "players": [
+          { "playerId": 1, "name": "Davo", "cardSet": true, "card": "BLOOD", "delta": 5 },
+          { "playerId": 10, "name": "Gazza", "cardSet": true, "card": "PURE", "delta": -3 }
+        ]
+      },
+      {
+        "id": 2, "roundNumber": 1, "matchupType": "1V1", "isRevealed": false,
+        "createdAt": "2026-11-14T06:10:00.000Z", "updatedAt": "2026-11-14T06:16:05.000Z",
+        "players": [
+          { "playerId": 3, "name": "Spud", "cardSet": true, "card": null, "delta": 0 },
+          { "playerId": 5, "name": "Wazza", "cardSet": false, "card": null, "delta": 0 }
+        ]
+      }
+    ]
+  },
+  "decrees": [
+    { "id": 4, "playerId": 13, "playerName": "Tommo", "pointsDelta": 2, "sinTag": "Blessing of the Creek", "reason": "Saved the esky from the tide", "isVoided": false, "createdAt": "2026-11-14T06:35:00.000Z" },
+    { "id": 3, "playerId": 5, "playerName": "Wazza", "pointsDelta": -2, "sinTag": "Wrath", "reason": "Spiked the totem tennis pole in anger", "isVoided": true, "createdAt": "2026-11-14T05:50:00.000Z" },
+    { "id": 2, "playerId": 3, "playerName": "Spud", "pointsDelta": 5, "sinTag": "Blessing of the Creek", "reason": "Cooked breakfast for the entire Sanctum", "isVoided": false, "createdAt": "2026-11-14T00:15:00.000Z" },
+    { "id": 1, "playerId": 1, "playerName": "Davo", "pointsDelta": -3, "sinTag": "Sloth", "reason": "Left an empty tinny on the balcony rail", "isVoided": false, "createdAt": "2026-11-13T22:05:00.000Z" }
+  ],
+  "broadcasts": [
+    { "id": 21, "type": "BLOOD_REVEAL", "createdAt": "2026-11-14T06:14:30.000Z", "payload": { "matchupId": 1, "roundNumber": 1, "headline": "BETRAYAL", "lines": ["Davo drew BLOOD (+5)", "Gazza kept PURE (−3)"] } },
+    { "id": 22, "type": "EVENT_SCORE", "createdAt": "2026-11-14T06:30:00.000Z", "payload": { "eventId": 3, "eventName": "The Weekly 50", "message": "The Weekly 50 scores committed" } },
+    { "id": 23, "type": "DECREE", "createdAt": "2026-11-14T06:35:00.000Z", "payload": { "playerNames": ["Tommo"], "pointsDelta": 2, "sinTag": "Blessing of the Creek", "reason": "Saved the esky from the tide" } }
+  ]
+}

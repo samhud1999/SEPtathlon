@@ -1,0 +1,88 @@
+/* CreekOS design tokens — the only source of theme truth (docs/CONTRACT.md §Styling) */
+
+:root {
+  /* PRD §5 palette */
+  --bg: #0b0f17;
+  --bg-raised: #0f1522;
+  --panel: #111a2b;
+  --panel-edge: #16203446;
+  --line: #1f2937;
+  --blood: #dc2626;
+  --blood-bright: #ef4444;
+  --blood-dim: #7f1d1d;
+  --gold: #f59e0b;
+  --gold-bright: #fcd34d;
+  --gold-dim: #92600a;
+  --bone: #e7e2d6;
+  --ash: #8b93a3;
+  --ink: #05070c;
+  --ok: #34d399;
+
+  --font-numeric: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --shadow-panel: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--bone);
+  font-family: var(--font-ui), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), serif;
+  letter-spacing: 0.04em;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
