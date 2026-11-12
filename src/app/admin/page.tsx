@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { adminCookieValue } from "@/lib/auth";
+import { isValidAdminCookie } from "@/lib/auth";
 import { ADMIN_COOKIE } from "@/lib/constants";
 import AdminApp from "./AdminApp";
 import LoginForm from "./LoginForm";
@@ -23,7 +23,7 @@ export default async function AdminPage({
 }) {
   const cookieStore = await cookies();
   const cookie = cookieStore.get(ADMIN_COOKIE)?.value ?? null;
-  if (cookie === adminCookieValue()) {
+  if (isValidAdminCookie(cookie)) {
     return <AdminApp />;
   }
 

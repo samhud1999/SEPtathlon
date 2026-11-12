@@ -25,7 +25,11 @@ async function api(path, body, method) {
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
-  return res.json().catch(() => null);
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(`${path} → ${res.status}: ${JSON.stringify(json)} (check BASE_URL/ADMIN_PIN)`);
+  }
+  return json;
 }
 
 function watch(page, label) {
@@ -61,7 +65,11 @@ async function shot(page, name, waitMs) {
 
   // decree overlay mid-flight
   const state = await api("/api/state");
-  const target = state.leaderboard.at(-1);
+  const target = state?.leaderboard?.at(-1);
+  if (!target) {
+    console.error("Leaderboard is empty — run `npm run seed:demo` first, or check BASE_URL.");
+    process.exit(1);
+  }
   await api("/api/decrees", {
     playerIds: [target.playerId],
     pointsDelta: 3,
@@ -114,7 +122,7 @@ async function shot(page, name, waitMs) {
 
   console.log(errors.length === 0 ? "\nNo console/page errors." : `\n${errors.length} errors:`);
   for (const e of errors) console.log(`  ⚠ ${e}`);
-  process.exit(0);
+  process.exit(errors.length > 0 ? 1 : 0);
 })().catch((err) => {
   console.error(err);
   process.exit(1);
