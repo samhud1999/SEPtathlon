@@ -267,7 +267,7 @@ export async function previewScores(eventId: number, inputs: ScoreInput[]): Prom
 
 export async function setEventStatus(eventId: number, status: EventStatus): Promise<StatePayload> {
   await mutate(async (tx) => {
-    await requireEvent(tx, eventId);
+    const event = await requireEvent(tx, eventId);
     if (status === "LIVE") {
       await tx
         .update(events)
@@ -275,6 +275,20 @@ export async function setEventStatus(eventId: number, status: EventStatus): Prom
         .where(and(eq(events.status, "LIVE"), ne(events.id, eventId)));
     }
     await tx.update(events).set({ status, updatedAt: new Date() }).where(eq(events.id, eventId));
+    // Guided typed-score entry is quiet; the lifecycle moments banner the TV.
+    if (status === "LIVE" && event.status !== "LIVE") {
+      await addBroadcast(tx, "EVENT_SCORE", {
+        eventId,
+        eventName: event.name,
+        message: `${event.name} IS LIVE — the Sin of ${event.sin} awaits`,
+      });
+    } else if (status === "COMPLETED" && event.status !== "COMPLETED") {
+      await addBroadcast(tx, "EVENT_SCORE", {
+        eventId,
+        eventName: event.name,
+        message: `${event.name} COMPLETE — scores are final`,
+      });
+    }
   });
   return getStatePayload();
 }

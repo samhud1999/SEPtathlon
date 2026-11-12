@@ -64,7 +64,7 @@ Every route handler: `export const dynamic = 'force-dynamic'`. Mutators return t
 | POST `/api/decrees` | admin | `DecreeCreateBody {playerIds: number[] (min 1), pointsDelta (≠0), sinTag, reason}` → one decree row per player + ONE `DECREE` broadcast naming all players. |
 | GET `/api/decrees` | admin | → `{decrees: DecreeRow[]}` full history, newest first. |
 | PATCH `/api/decrees/[id]` | admin | `DecreePatchBody {pointsDelta?, sinTag?, reason?, isVoided?, playerId?}`. |
-| GET `/api/blood/matchups` | admin | → `{matchups}` full rows **including unrevealed cards**. |
+| GET `/api/blood/matchups` | admin | → `{matchups: BloodMatchupPublic[]}` — the SAME seats shape as the public state, but with real `card` values on unrevealed matchups (`cardSet` still set). |
 | POST `/api/blood/generate` | admin | `BloodGenerateBody {roundNumber 1–3}` → wipe that round's UNrevealed matchups, randomly pair active players not already in a revealed matchup of the round; odd leftover → one 3WAY; <2 pairable → 400. |
 | POST `/api/blood/matchups` | admin | `BloodCreateBody {roundNumber, playerIds: [a,b] or [a,b,c]}` manual matchup. |
 | PATCH `/api/blood/matchups/[id]` | admin | `BloodPatchBody {cardA?, cardB?, cardC?, reveal?, unreveal?, deltaA?, deltaB?, deltaC?}`. `reveal:true` requires all seats carded (else 409) → compute deltas via `computeBloodDeltas` (round 3 = ×2), set `isRevealed`, broadcast `BLOOD_REVEAL`. Manual delta fields apply only to revealed matchups (post-reveal amendment). `unreveal:true` flips it back (deltas kept, totals exclude them). |
@@ -87,8 +87,12 @@ Per input row (all upserted in ONE transaction, then event recalc + totals recal
 - `revive: true` → `eliminationOrder=null`, `livesRemaining` = provided value or 1.
 - `livesRemaining` clamps 0–9. `manualRankOverride` ≥1; `manualPointsOverride` any; `rawScore`,
   `weightAGrams/BGrams` ≥0.
-- `quiet:true` (guided lives/curse taps) skips the EVENT_SCORE broadcast; default commits one
+- `quiet:true` skips the EVENT_SCORE broadcast; default commits one
   (`message` e.g. "Krillion scores committed" / "Davo ELIMINATED — 11th of the Creek").
+  UI convention: lives taps, typed raw/fruit entries, and revive corrections are quiet;
+  ELIMINATE and god-mode "Save Amendments" broadcast; `POST /api/events/[id]/status`
+  broadcasts on transitions to LIVE and COMPLETED, so finishing a quiet-scored event
+  still banners the TV.
 - Recalc per PRD §3: override lock → metric sort (RAW_HIGH desc / elimination positional:
   alive-then-order-desc / FRUIT err asc) → tie split `ceilToHalf(mean)` → joker ×2 → points
   override wins all. Unmetric'd rows (null raw/weights) stay `calculatedRank:null`, 0 pts.

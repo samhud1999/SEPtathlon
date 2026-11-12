@@ -1,10 +1,15 @@
-// Stub — replaced by the tv agent (Task 5).
+import TvDashboard from "./TvDashboard";
+
 export const dynamic = "force-dynamic";
 
-export default function TvPage() {
-  return (
-    <main style={{ display: "grid", placeItems: "center", minHeight: "100vh" }}>
-      <h1>THE SANCTUM AWAKENS…</h1>
-    </main>
-  );
+export const metadata = {
+  title: "THE SEPTATHLON — The Sanctum of Separation Creek",
+};
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function TvPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+  const endpoint = params.mock ? "/api/mock-state" : "/api/state";
+  return <TvDashboard endpoint={endpoint} />;
 }

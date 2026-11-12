@@ -55,9 +55,9 @@ async function init(): Promise<AppDb> {
     return app;
   }
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && process.env.CREEKOS_ALLOW_PGLITE !== "1") {
     throw new Error(
-      "DATABASE_URL is required in production. On Railway, add the Postgres service and a reference variable DATABASE_URL=${{Postgres.DATABASE_URL}} (see README).",
+      "DATABASE_URL is required in production. On Railway, add the Postgres service and a reference variable DATABASE_URL=${{Postgres.DATABASE_URL}} (see README). Set CREEKOS_ALLOW_PGLITE=1 only for local production-mode testing.",
     );
   }
 
