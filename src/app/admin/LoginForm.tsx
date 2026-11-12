@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 import { isErrorBody } from "./shared";
 
 export default function LoginForm({ pinFromUrl }: { pinFromUrl: string | null }) {
-  const router = useRouter();
   const [pin, setPin] = useState(pinFromUrl ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -24,9 +22,9 @@ export default function LoginForm({ pinFromUrl }: { pinFromUrl: string | null })
         body: JSON.stringify({ pin: trimmed }),
       });
       if (res.ok) {
-        // Scrub ?pin= from the address bar, then let the server gate re-render.
-        window.history.replaceState(null, "", "/admin");
-        router.refresh();
+        // Hard navigation: re-runs the server gate with the fresh cookie and
+        // scrubs ?pin= from the address bar in one move.
+        window.location.replace("/admin");
         return; // stay in the pending state while the portal loads
       }
       const body: unknown = await res.json().catch(() => null);

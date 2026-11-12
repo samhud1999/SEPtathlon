@@ -41,9 +41,15 @@ export function unauthorized(): Response {
   return Response.json({ error: "Unauthorised. The Creek denies you." }, { status: 401 });
 }
 
-/** Set-Cookie header value for a successful login. */
-export function adminSetCookie(): string {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+/**
+ * Set-Cookie header value for a successful login. `Secure` follows the actual
+ * request protocol (Railway terminates TLS and sends x-forwarded-proto), so
+ * local/LAN http testing still gets a working cookie.
+ */
+export function adminSetCookie(req?: Request): string {
+  const forwardedHttps = req?.headers.get("x-forwarded-proto")?.includes("https") ?? false;
+  const directHttps = req ? new URL(req.url).protocol === "https:" : false;
+  const secure = forwardedHttps || directHttps ? "; Secure" : "";
   return `${ADMIN_COOKIE}=${adminCookieValue()}; Path=/; Max-Age=604800; HttpOnly; SameSite=Lax${secure}`;
 }
 

@@ -12,7 +12,7 @@ export async function POST(req: Request): Promise<Response> {
       return jsonError("Wrong PIN. The Creek denies you.", 401);
     }
     const res = NextResponse.json({ ok: true });
-    res.headers.append("Set-Cookie", adminSetCookie());
+    res.headers.append("Set-Cookie", adminSetCookie(req));
     return res;
   });
 }
