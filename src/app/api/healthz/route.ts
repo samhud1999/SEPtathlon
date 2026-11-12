@@ -1,6 +1,15 @@
-// Stub — replaced by the api agent with a DB-touching version (Task 4).
+import { NextResponse } from "next/server";
+import { getStateVersion } from "@/db/repo";
+
 export const dynamic = "force-dynamic";
 
+/** Railway healthcheck — touches the database so a dead DB fails the check. */
 export async function GET(): Promise<Response> {
-  return Response.json({ ok: true, version: 0 });
+  try {
+    const version = await getStateVersion();
+    return NextResponse.json({ ok: true, version });
+  } catch (err) {
+    console.error("[creekos] healthz failed:", err);
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
 }
