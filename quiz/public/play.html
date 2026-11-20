@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#12131a" />
+    <title>Quiz</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div id="offline" class="offline" hidden>Reconnecting…</div>
+    <div id="top" class="topbar" hidden></div>
+    <main id="app" class="center"><p class="muted">Connecting…</p></main>
+
+    <script src="/client.js"></script>
+    <script>
+      "use strict";
+      let id = localStorage.getItem("quiz-id");
+      if (!id) {
+        id = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now();
+        localStorage.setItem("quiz-id", id);
+      }
+      let state = null;
+      let screenKey = "";
+      let errorMsg = "";
+
+      const sock = connect({
+        onOpen: (s) => s.send({ type: "hello", id }),
+        onStatus: (up) => ($("#offline").hidden = up),
+        onMessage(msg) {
+          if (msg.type === "error") {
+            if (!msg.quiet) {
+              errorMsg = msg.error;
+              screenKey = "";
+              render();
+            }
+            return;
+          }
+          if (msg.type === "kicked") {
+            localStorage.removeItem("quiz-id");
+            location.reload();
+            return;
+          }
+          if (msg.type === "state") {
+            state = msg;
+            timer.set(msg.timeLeft || 0);
+            render();
+          }
+        },
+      });
+
+      function keyFor(s) {
+        const b = s.buzz ? [s.buzz.holder, s.buzz.mine, s.buzz.lockedOut].join("|") : "";
+        return [s.phase, s.question && s.question.index, s.answered, b, s.result && s.result.delta, errorMsg].join("/");
+      }
+
+      function render() {
+        if (!state) return;
+        const top = $("#top");
+        top.hidden = state.phase === "join";
+        if (!top.hidden) top.innerHTML = `<span>${esc(state.name)}</span><span>${state.score} pts</span>`;
+
+        const k = keyFor(state);
+        if (k === screenKey) return; // keep inputs/focus intact between syncs
+        screenKey = k;
+        const app = $("#app");
+        app.className = "center";
+        const s = state;
+
+        if (s.phase === "join") {
+          app.innerHTML = `
+            <div class="stack">
+              <div class="big">Join the quiz</div>
+              <form id="joinForm" class="stack">
+                <input id="name" type="text" maxlength="20" placeholder="Your name" autocomplete="off" autocapitalize="words" required />
+                <button type="submit">Let's go</button>
+                ${errorMsg ? `<div class="bad">${esc(errorMsg)}</div>` : ""}
+              </form>
+            </div>`;
+          $("#joinForm").onsubmit = (e) => {
+            e.preventDefault();
+            errorMsg = "";
+            sock.send({ type: "join", id, name: $("#name").value });
+          };
+          $("#name").focus();
+          return;
+        }
+
+        if (s.phase === "lobby") {
+          app.innerHTML = `<div class="big">You're in, ${esc(s.name)}!</div>
+            <p class="muted">Watch the TV. The quiz starts soon.</p>
+            <p class="muted">${s.players} player${s.players === 1 ? "" : "s"} joined</p>`;
+          return;
+        }
+
+        if (s.phase === "question") return renderQuestion(app, s);
+
+        if (s.phase === "reveal" || s.phase === "leaderboard") {
+          const r = s.result;
+          const headline = r.wasRight
+            ? `<div class="result good">Correct!</div>`
+            : r.tried
+              ? `<div class="result bad">Not quite</div>`
+              : `<div class="result muted">No answer</div>`;
+          app.innerHTML = `${headline}
+            <div class="big">${r.delta > 0 ? "+" : ""}${r.delta} pts</div>
+            <p class="muted">Answer: <b>${esc(r.correct)}</b></p>
+            <p>You're <b>#${s.rank}</b> of ${s.players} with <b>${s.score}</b> points</p>`;
+          return;
+        }
+
+        if (s.phase === "final") {
+          const medals = ["🥇", "🥈", "🥉"];
+          app.innerHTML = `<div class="big">That's the quiz!</div>
+            <p>You finished <b>#${s.rank}</b> with <b>${s.score}</b> points</p>
+            <div class="stack">${s.podium.map((p, i) => `<div>${medals[i]} ${esc(p.name)} · ${p.score}</div>`).join("")}</div>`;
+        }
+      }
+
+      function header(s) {
+        const q = s.question;
+        return `
+          <div class="qmeta"><span class="badge">Q${q.index + 1}/${q.total} · ${esc(q.category)}</span><span class="timer" id="t">–</span></div>
+          <div class="bar"><i id="bar"></i></div>
+          <div class="qtext">${esc(q.text)}</div>`;
+      }
+
+      function renderQuestion(app, s) {
+        const q = s.question;
+        app.className = "player";
+
+        if (q.type === "mc") {
+          if (s.answered) {
+            app.innerHTML = header(s) + `<div class="center"><div class="big">Locked in</div>
+              <div class="opt c${s.choice}"><span class="shape">${SHAPES[s.choice]}</span>${esc(q.options[s.choice])}</div></div>`;
+            return;
+          }
+          app.innerHTML = header(s) + `<div class="options">${q.options
+            .map((o, i) => `<button class="opt c${i}" data-i="${i}"><span class="shape">${SHAPES[i]}</span>${esc(o)}</button>`)
+            .join("")}</div>`;
+          app.querySelectorAll(".opt").forEach((b) => {
+            b.onclick = () => {
+              app.querySelectorAll(".opt").forEach((x) => (x.disabled = true));
+              sock.send({ type: "answer", choice: Number(b.dataset.i) });
+            };
+          });
+          return;
+        }
+
+        if (q.type === "text") {
+          if (s.answered) {
+            app.innerHTML = header(s) + `<div class="center"><div class="big">Locked in</div><p class="muted">“${esc(s.myText)}”</p></div>`;
+            return;
+          }
+          app.innerHTML = header(s) + answerForm("Your answer");
+          wireForm();
+          return;
+        }
+
+        // buzzer
+        const b = s.buzz || {};
+        if (b.mine) {
+          app.innerHTML = header(s) + `<div class="big good">You buzzed! Type it in</div>` + answerForm("Your answer");
+          wireForm();
+        } else if (b.holder) {
+          app.innerHTML = header(s) + `<div class="center"><div class="big">${esc(b.holder)} buzzed in…</div></div>`;
+        } else if (b.lockedOut) {
+          app.innerHTML = header(s) + `<div class="center"><div class="big bad">Locked out</div><p class="muted">Wait for the next question</p></div>`;
+        } else {
+          app.innerHTML = header(s) + `<div class="center"><button class="buzz" id="buzz">BUZZ</button></div>`;
+          $("#buzz").onclick = (e) => {
+            e.currentTarget.disabled = true;
+            if (navigator.vibrate) navigator.vibrate(60);
+            sock.send({ type: "buzz" });
+          };
+        }
+      }
+
+      function answerForm(placeholder) {
+        return `<form id="ansForm" class="stack" style="max-width:none">
+          <input id="ans" type="text" maxlength="80" placeholder="${placeholder}" autocomplete="off" autocorrect="off" spellcheck="false" />
+          <button type="submit">Submit</button></form>`;
+      }
+
+      function wireForm() {
+        const input = $("#ans");
+        input.focus();
+        $("#ansForm").onsubmit = (e) => {
+          e.preventDefault();
+          if (!input.value.trim()) return;
+          e.submitter && (e.submitter.disabled = true);
+          sock.send({ type: "answer", text: input.value });
+        };
+      }
+
+      startTicker((ms) => {
+        const t = $("#t");
+        if (!t || !state || state.phase !== "question") return;
+        const secs = Math.ceil(ms / 1000);
+        t.textContent = secs;
+        t.classList.toggle("low", secs <= 5);
+        const total = state.buzz && state.buzz.holder ? 15000 : { mc: 20000, text: 30000, buzzer: 20000 }[state.question.type];
+        $("#bar").style.width = `${Math.min(100, (ms / total) * 100)}%`;
+      });
+    </script>
+  </body>
+</html>

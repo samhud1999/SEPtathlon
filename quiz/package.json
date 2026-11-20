@@ -1,0 +1,16 @@
+{
+  "name": "septathlon-quiz",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kahoot-style party quiz: TV host screen + phone players over WebSockets",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.0"
+  }
+}

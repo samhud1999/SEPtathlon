@@ -1,0 +1,205 @@
+[
+  {
+    "type": "mc",
+    "category": "Geography",
+    "text": "What is the capital city of Canada?",
+    "options": ["Toronto", "Ottawa", "Vancouver", "Montreal"],
+    "answer": 1
+  },
+  {
+    "type": "buzzer",
+    "category": "Music",
+    "text": "Which Australian band released \"Highway to Hell\"?",
+    "accept": ["AC/DC", "ACDC", "AC DC"]
+  },
+  {
+    "type": "mc",
+    "category": "News",
+    "text": "In this month's US midterm elections, who won control of Congress?",
+    "options": [
+      "Republicans won both chambers",
+      "Democrats won both chambers",
+      "Democrats the House, Republicans the Senate",
+      "Republicans the House, Democrats the Senate"
+    ],
+    "answer": 1
+  },
+  {
+    "type": "text",
+    "category": "TV",
+    "text": "In Breaking Bad, what alias does Walter White use?",
+    "accept": ["Heisenberg"]
+  },
+  {
+    "type": "mc",
+    "category": "Words",
+    "text": "What does the word \"petrichor\" describe?",
+    "options": [
+      "A fear of rocks",
+      "The smell of rain on dry ground",
+      "A carved stone pillar",
+      "A type of crude oil"
+    ],
+    "answer": 1
+  },
+  {
+    "type": "buzzer",
+    "category": "History",
+    "text": "Who was the first person to walk on the Moon?",
+    "accept": ["Neil Armstrong", "Armstrong"]
+  },
+  {
+    "type": "text",
+    "category": "News",
+    "text": "Who replaced Jacinta Allan as Premier of Victoria in July?",
+    "accept": ["Ben Carroll", "Carroll", "Benjamin Carroll"]
+  },
+  {
+    "type": "mc",
+    "category": "TV",
+    "text": "In Friends, what is the name of the gang's favourite coffee shop?",
+    "options": ["Central Park", "The Grind", "Central Perk", "Java Joe's"],
+    "answer": 2
+  },
+  {
+    "type": "buzzer",
+    "category": "Geography",
+    "text": "What is the longest river in South America?",
+    "accept": ["Amazon", "Amazon River", "The Amazon"]
+  },
+  {
+    "type": "text",
+    "category": "Words",
+    "text": "Rearrange the letters of LISTEN to make a word meaning \"without any sound\".",
+    "accept": ["Silent"]
+  },
+  {
+    "type": "mc",
+    "category": "History",
+    "text": "In what year did the Berlin Wall fall?",
+    "options": ["1985", "1987", "1989", "1991"],
+    "answer": 2
+  },
+  {
+    "type": "mc",
+    "category": "Music",
+    "text": "What was the name of Taylor Swift's record-breaking 2023–24 world tour?",
+    "options": ["The Reputation Tour", "The Eras Tour", "The 1989 World Tour", "The Lover Tour"],
+    "answer": 1
+  },
+  {
+    "type": "buzzer",
+    "category": "News",
+    "text": "Which Turkish resort city hosted the COP31 climate summit this month?",
+    "accept": ["Antalya"]
+  },
+  {
+    "type": "text",
+    "category": "Geography",
+    "text": "What is the capital city of New Zealand?",
+    "accept": ["Wellington"]
+  },
+  {
+    "type": "buzzer",
+    "category": "TV",
+    "text": "What is the family's surname in the kids' show Bluey?",
+    "accept": ["Heeler", "Heelers", "The Heelers"]
+  },
+  {
+    "type": "mc",
+    "category": "Words",
+    "text": "Which of these is spelled correctly?",
+    "options": ["Accomodate", "Acommodate", "Accommodate", "Acomodate"],
+    "answer": 2
+  },
+  {
+    "type": "text",
+    "category": "History",
+    "text": "Which ship sank on its maiden voyage in April 1912?",
+    "accept": ["Titanic", "RMS Titanic", "The Titanic"]
+  },
+  {
+    "type": "mc",
+    "category": "News",
+    "text": "Which horse won the 2026 Melbourne Cup?",
+    "options": ["Zahrann", "Vauban", "Buckaroo", "Point Of Law"],
+    "answer": 3
+  },
+  {
+    "type": "text",
+    "category": "Music",
+    "text": "How many strings does a standard guitar have?",
+    "accept": ["6", "Six"]
+  },
+  {
+    "type": "buzzer",
+    "category": "Words",
+    "text": "What do you call a word that reads the same forwards and backwards, like \"kayak\"?",
+    "accept": ["Palindrome", "A palindrome"]
+  },
+  {
+    "type": "mc",
+    "category": "Geography",
+    "text": "Counting its overseas territories, which country has the most time zones?",
+    "options": ["Russia", "United States", "France", "United Kingdom"],
+    "answer": 2
+  },
+  {
+    "type": "mc",
+    "category": "TV",
+    "text": "Which show is set in the fictional town of Hawkins, Indiana?",
+    "options": ["Twin Peaks", "Stranger Things", "Riverdale", "Dark"],
+    "answer": 1
+  },
+  {
+    "type": "buzzer",
+    "category": "News",
+    "text": "Which country won the 2026 FIFA World Cup?",
+    "accept": ["Spain", "Espana"]
+  },
+  {
+    "type": "mc",
+    "category": "History",
+    "text": "Who was Australia's first Prime Minister?",
+    "options": ["Alfred Deakin", "Edmund Barton", "Robert Menzies", "Henry Parkes"],
+    "answer": 1
+  },
+  {
+    "type": "text",
+    "category": "Words",
+    "text": "In English Scrabble, how many points are the letters Q and Z each worth?",
+    "accept": ["10", "Ten"]
+  },
+  {
+    "type": "mc",
+    "category": "Music",
+    "text": "Which band recorded \"Bohemian Rhapsody\"?",
+    "options": ["The Beatles", "Led Zeppelin", "Queen", "ABBA"],
+    "answer": 2
+  },
+  {
+    "type": "buzzer",
+    "category": "Geography",
+    "text": "What is the largest hot desert in the world?",
+    "accept": ["Sahara", "The Sahara", "Sahara Desert"]
+  },
+  {
+    "type": "text",
+    "category": "History",
+    "text": "In which US city was President John F. Kennedy assassinated in 1963?",
+    "accept": ["Dallas"]
+  },
+  {
+    "type": "mc",
+    "category": "Music",
+    "text": "Which Australian singer had a worldwide hit with \"Can't Get You Out of My Head\"?",
+    "options": ["Delta Goodrem", "Kylie Minogue", "Natalie Imbruglia", "Sia"],
+    "answer": 1
+  },
+  {
+    "type": "buzzer",
+    "category": "TV",
+    "text": "In The Simpsons, what is the name of the bar where Homer drinks?",
+    "accept": ["Moe's", "Moes", "Moe's Tavern", "Moes Tavern"]
+  }
+]

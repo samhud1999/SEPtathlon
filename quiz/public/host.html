@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quiz · Host</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div id="offline" class="offline" hidden>Reconnecting…</div>
+    <main id="app" class="center">
+      <form id="pinForm" class="stack">
+        <div class="big">Host the quiz</div>
+        <input id="pin" type="password" inputmode="numeric" placeholder="Host PIN" autocomplete="off" />
+        <button type="submit">Open host screen</button>
+        <div id="pinErr" class="bad"></div>
+      </form>
+    </main>
+    <nav id="controls" class="controls" hidden>
+      <span id="info" class="muted"></span>
+      <span class="spacer"></span>
+      <button id="reset" class="ghost">Reset quiz</button>
+      <button id="next">Start</button>
+    </nav>
+
+    <script src="/client.js"></script>
+    <script>
+      "use strict";
+      let pin = sessionStorage.getItem("quiz-pin") || "";
+      let authed = false;
+      let state = null;
+      let screenKey = "";
+      const joinUrl = location.origin + "/";
+
+      const sock = connect({
+        onOpen: (s) => pin && s.send({ type: "host", pin }),
+        onStatus: (up) => ($("#offline").hidden = up),
+        onMessage(msg) {
+          if (msg.type === "error") {
+            sessionStorage.removeItem("quiz-pin");
+            authed = false;
+            $("#pinErr") && ($("#pinErr").textContent = msg.error);
+            return;
+          }
+          if (msg.type === "state") {
+            authed = true;
+            sessionStorage.setItem("quiz-pin", pin);
+            state = msg;
+            timer.set(msg.timeLeft || 0);
+            render();
+          }
+        },
+      });
+
+      $("#pinForm").onsubmit = (e) => {
+        e.preventDefault();
+        pin = $("#pin").value.trim();
+        sock.send({ type: "host", pin });
+      };
+
+      const next = () => sock.send({ type: "next" });
+      $("#next").onclick = next;
+      document.addEventListener("keydown", (e) => {
+        if (!authed || e.target.tagName === "INPUT") return;
+        if (e.key === " " || e.key === "ArrowRight" || e.key === "Enter") {
+          e.preventDefault();
+          next();
+        }
+      });
+
+      // Two-tap reset (no browser dialogs).
+      let resetArmed = null;
+      $("#reset").onclick = (e) => {
+        const btn = e.currentTarget;
+        if (resetArmed) {
+          clearTimeout(resetArmed);
+          resetArmed = null;
+          btn.textContent = "Reset quiz";
+          sock.send({ type: "reset" });
+          return;
+        }
+        btn.textContent = "Tap again to reset everything";
+        resetArmed = setTimeout(() => {
+          resetArmed = null;
+          btn.textContent = "Reset quiz";
+        }, 3000);
+      };
+
+      function keyFor(s) {
+        const b = s.buzz ? [s.buzz.holder, s.buzz.lockedOut.length].join("|") : "";
+        return JSON.stringify([s.phase, s.question && s.question.index, b, s.answered, s.reveal, s.standings.map((p) => [p.name, p.score, p.connected])]);
+      }
+
+      function render() {
+        $("#controls").hidden = false;
+        const s = state;
+        const total = s.question ? s.question.total : 0;
+        const label = {
+          lobby: "Start quiz",
+          question: "End question",
+          reveal: s.question && s.question.index + 1 >= total ? "Final results" : "Leaderboard",
+          leaderboard: s.question && s.question.index + 1 >= total ? "Final results" : "Next question",
+          final: "—",
+        }[s.phase];
+        $("#next").textContent = `${label}  ›`;
+        $("#next").disabled = s.phase === "final" || (s.phase === "lobby" && s.standings.length === 0);
+        const here = s.standings.filter((p) => p.connected).length;
+        $("#info").textContent = `${here}/${s.standings.length} players connected · Space = next`;
+
+        const k = keyFor(s);
+        if (k === screenKey) return;
+        screenKey = k;
+        const app = $("#app");
+        app.className = "host";
+
+        if (s.phase === "lobby") {
+          app.innerHTML = `
+            <div class="lobby">
+              <div class="qr"><img alt="QR code to join" src="/qr.svg?u=${encodeURIComponent(joinUrl)}" /></div>
+              <div class="stack" style="max-width:none">
+                <span class="badge">Join on your phone</span>
+                <div class="joinurl">${esc(joinUrl.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</div>
+                <div class="muted" style="font-size:1.3rem">${s.standings.length} joined${s.standings.length ? " · tap a name to remove them" : ""}</div>
+                <div class="chips">${s.standings
+                  .map((p) => `<button class="chip ${p.connected ? "" : "off"}" data-kick="${esc(p.id)}">${esc(p.name)}</button>`)
+                  .join("")}</div>
+              </div>
+            </div>`;
+          wireKicks(app);
+          return;
+        }
+
+        if (s.phase === "question") return renderQuestion(app, s);
+        if (s.phase === "reveal") return renderReveal(app, s);
+        if (s.phase === "leaderboard") return renderBoard(app, s, "Leaderboard");
+
+        if (s.phase === "final") {
+          const [a, b, c] = s.standings;
+          const col = (p, cls, medal) =>
+            p ? `<div class="${cls}">${medal}<br />${esc(p.name)}<br /><span style="font-size:.7em">${p.score}</span></div>` : "";
+          app.innerHTML = `<div class="big" style="text-align:center;font-size:3rem">Final results</div>
+            <div class="podium">${col(b, "p2", "🥈")}${col(a, "p1", "🥇")}${col(c, "p3", "🥉")}</div>`;
+        }
+      }
+
+      function qHeader(s) {
+        const q = s.question;
+        return `<div class="qmeta">
+            <span class="badge">Question ${q.index + 1} of ${q.total} · ${esc(q.category)} · ${TYPE_LABEL[q.type]}</span>
+            ${s.phase === "question" ? `<span class="timer" id="t">–</span>` : ""}
+          </div>
+          <div class="qtext">${esc(q.text)}</div>`;
+      }
+
+      function renderQuestion(app, s) {
+        const q = s.question;
+        const players = s.standings.filter((p) => p.connected).length;
+        let body = "";
+        if (q.type === "mc") {
+          body = `<div class="options">${q.options
+            .map((o, i) => `<div class="opt c${i}"><span class="shape">${SHAPES[i]}</span>${esc(o)}</div>`)
+            .join("")}</div>
+            <div class="status muted">${s.answered}/${players} answered</div>`;
+        } else if (q.type === "text") {
+          body = `<div class="status muted">Type your answer on your phone<br />${s.answered}/${players} answered</div>`;
+        } else {
+          const b = s.buzz;
+          body = b.holder
+            ? `<div class="status"><span class="good">${esc(b.holder)}</span> buzzed in and is answering…</div>`
+            : `<div class="status">Buzzers are open!${b.lockedOut.length ? `<br /><span class="muted" style="font-size:.6em">${b.lockedOut.length} locked out</span>` : ""}</div>`;
+        }
+        app.innerHTML = qHeader(s) + `<div class="bar"><i id="bar"></i></div>` + body;
+      }
+
+      function renderReveal(app, s) {
+        const q = s.question;
+        const r = s.reveal;
+        let body = "";
+        if (q.type === "mc") {
+          body = `<div class="options">${q.options
+            .map(
+              (o, i) =>
+                `<div class="opt c${i} ${i === r.answer ? "right" : "dim"}"><span class="shape">${SHAPES[i]}</span>${esc(o)}<span class="count">${r.counts[i]}</span></div>`,
+            )
+            .join("")}</div>`;
+        } else {
+          const items = q.type === "text" ? r.answers : r.attempts;
+          const ref = (a) => (q.type === "text" ? a.id : a.i);
+          body =
+            `<div class="correct">${esc(r.correct)}</div>` +
+            (items.length
+              ? `<div class="answers">${items
+                  .map(
+                    (a) => `<button class="ans ${a.correct ? "right" : "wrong"}" data-ref="${esc(ref(a))}" title="Tap to mark ${a.correct ? "wrong" : "right"}">
+                      <span>${esc(a.text)}<small>${esc(a.name)}${q.type === "buzzer" ? ` · ${a.points > 0 ? "+" : ""}${a.points}` : ""}</small></span>
+                      <span class="${a.correct ? "good" : "bad"}">${a.correct ? "✓" : "✗"}</span></button>`,
+                  )
+                  .join("")}</div><div class="muted" style="text-align:center">Tap an answer to mark it right or wrong</div>`
+              : `<div class="status muted">${q.type === "buzzer" ? "Nobody buzzed in" : "No answers"}</div>`);
+        }
+        app.innerHTML = qHeader(s) + body;
+        app.querySelectorAll("[data-ref]").forEach((b) => {
+          b.onclick = () => sock.send({ type: "toggle", q: q.index, ref: q.type === "text" ? b.dataset.ref : Number(b.dataset.ref) });
+        });
+      }
+
+      function renderBoard(app, s, title) {
+        app.innerHTML = `<div class="big" style="text-align:center">${title}</div>
+          <div class="board">${s.standings
+            .slice(0, 12)
+            .map(
+              (p) => `<div class="row"><span class="rank">#${p.rank}</span><span>${esc(p.name)}</span>
+                <span class="delta ${p.delta > 0 ? "good" : p.delta < 0 ? "bad" : "muted"}">${p.delta > 0 ? "+" : ""}${p.delta || ""}</span>
+                <span>${p.score}</span></div>`,
+            )
+            .join("")}</div>`;
+      }
+
+      function wireKicks(root) {
+        root.querySelectorAll("[data-kick]").forEach((b) => {
+          b.onclick = () => {
+            if (b.dataset.armed) return sock.send({ type: "kick", player: b.dataset.kick });
+            b.dataset.armed = "1";
+            b.textContent = "Remove " + b.textContent + "?";
+          };
+        });
+      }
+
+      startTicker((ms) => {
+        const t = $("#t");
+        if (!t || !state || state.phase !== "question") return;
+        const secs = Math.ceil(ms / 1000);
+        t.textContent = secs;
+        t.classList.toggle("low", secs <= 5);
+        const total = state.buzz && state.buzz.holder ? 15000 : { mc: 20000, text: 30000, buzzer: 20000 }[state.question.type];
+        $("#bar").style.width = `${Math.min(100, (ms / total) * 100)}%`;
+      });
+    </script>
+  </body>
+</html>
