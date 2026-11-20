@@ -3,6 +3,7 @@
 A Kahoot-style party quiz. The TV shows the host screen, and everyone plays on their phones.
 
 - **TV / host:** `https://<your-quiz-domain>/host` (enter the host PIN)
+- **Host's phone:** `https://<your-quiz-domain>/control` (same PIN) — runs the game and shows you every answer
 - **Players:** `https://<your-quiz-domain>/`, or scan the QR code on the TV
 
 ## Question types
@@ -11,13 +12,14 @@ A Kahoot-style party quiz. The TV shows the host screen, and everyone plays on t
 |---|---|---|
 | Multiple choice | Everyone picks from 4 options within 20 s | 500–1000, faster answers score more |
 | Type your answer | Everyone types an answer within 30 s. Small typos, capitals and "the" are forgiven | 1000 |
-| Buzzer | First to buzz gets 15 s to type an answer. A wrong answer costs 250 and locks that player out, then the buzzers reopen for everyone else | 1000 |
+| Buzzer | First to buzz answers **out loud** and has 15 s before it counts as a miss. You mark it ✓/✗ on `/control`, where the answer is in front of you. Wrong or timed out costs 250 and locks that player out, then the buzzers reopen for everyone else | 1000 |
 
-After each question the TV reveals the answer. For typed and buzzer answers, **tap any answer on the TV to mark it right or wrong**, and the scores update.
+After each question the answer is revealed. For typed and buzzer answers, **tap any answer on `/control` (or the TV) to flip it right or wrong**, and the scores update — even for earlier questions.
 
 ## Running the quiz
 
-- **Space**, **→** or the purple button moves things on: start → end question early → leaderboard → next question.
+- Run it from your phone at `/control`: it shows the current question **with the correct answer**, who buzzed, big ✓/✗ verdict buttons, and the same next/kick/reset controls as the TV.
+- **Space**, **→** or the purple button (on the TV or `/control`) moves things on: start → end question early → leaderboard → next question.
 - A question also ends by itself when the timer runs out or everyone has answered.
 - Players who refresh or lose signal rejoin automatically with their score.
 - In the lobby, tap a name twice to remove that player.

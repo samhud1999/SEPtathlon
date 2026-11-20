@@ -26,6 +26,7 @@ const PUBLIC = path.join(__dirname, "public");
 const FILES = {
   "/": ["play.html", "text/html"],
   "/host": ["host.html", "text/html"],
+  "/control": ["control.html", "text/html"],
   "/style.css": ["style.css", "text/css"],
   "/client.js": ["client.js", "text/javascript"],
 };
@@ -121,11 +122,13 @@ function handle(c, msg) {
       broadcast();
       return;
     case "next":
+    case "judge":
     case "toggle":
     case "kick":
     case "reset": {
       if (c.role !== "host") return;
       if (msg.type === "next") game.next();
+      if (msg.type === "judge") game.judge(Boolean(msg.correct));
       if (msg.type === "toggle") game.toggle(Number(msg.q), msg.ref);
       if (msg.type === "kick") {
         game.kick(String(msg.player));

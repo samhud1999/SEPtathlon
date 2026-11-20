@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#12131a" />
+    <title>Quiz · Controller</title>
+    <link rel="stylesheet" href="/style.css" />
+    <style>
+      /* Phone host controller: the answer in hand, verdicts one thumb away. */
+      .key {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--c2);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin: 10px 0;
+      }
+      .key .label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+      .key .val { font-size: 1.4rem; font-weight: 800; }
+      .key .alts { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+      .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+      .verdicts button {
+        font-size: 1.3rem; font-weight: 800; padding: 22px 10px; border-radius: 14px; border: 0; color: #fff;
+      }
+      .verdicts .yes { background: var(--good); }
+      .verdicts .no { background: var(--bad); }
+      .holder {
+        text-align: center; background: var(--panel); border: 1px solid var(--line);
+        border-radius: 14px; padding: 18px 10px; margin-top: 10px;
+      }
+      .holder .who { font-size: 2rem; font-weight: 900; }
+      .ctl { padding: 12px 14px calc(84px + env(safe-area-inset-bottom, 0px)); max-width: 560px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+      .ctl .qtext { font-size: 1.15rem; }
+      .rowline { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+      .mini { font-size: 0.85rem; color: var(--muted); }
+      .boardsm .row { font-size: 0.95rem; padding: 8px 10px; }
+    </style>
+  </head>
+  <body>
+    <div id="offline" class="offline" hidden>Reconnecting…</div>
+    <main id="app" class="center">
+      <form id="pinForm" class="stack">
+        <div class="big">Quiz controller</div>
+        <p class="muted">Runs the game from your phone. Keep the TV on /host.</p>
+        <input id="pin" type="password" inputmode="numeric" placeholder="Host PIN" autocomplete="off" />
+        <button type="submit">Take control</button>
+        <div id="pinErr" class="bad"></div>
+      </form>
+    </main>
+    <nav id="controls" class="controls" hidden>
+      <span id="info" class="muted"></span>
+      <span class="spacer"></span>
+      <button id="reset" class="ghost">Reset</button>
+      <button id="next">Start</button>
+    </nav>
+
+    <script src="/client.js"></script>
+    <script>
+      "use strict";
+      let pin = sessionStorage.getItem("quiz-pin") || "";
+      let authed = false;
+      let state = null;
+      let screenKey = "";
+
+      const sock = connect({
+        onOpen: (s) => pin && s.send({ type: "host", pin }),
+        onStatus: (up) => ($("#offline").hidden = up),
+        onMessage(msg) {
+          if (msg.type === "error") {
+            sessionStorage.removeItem("quiz-pin");
+            authed = false;
+            $("#pinErr") && ($("#pinErr").textContent = msg.error);
+            return;
+          }
+          if (msg.type === "state") {
+            authed = true;
+            sessionStorage.setItem("quiz-pin", pin);
+            state = msg;
+            timer.set(msg.timeLeft || 0);
+            render();
+          }
+        },
+      });
+
+      $("#pinForm").onsubmit = (e) => {
+        e.preventDefault();
+        pin = $("#pin").value.trim();
+        sock.send({ type: "host", pin });
+      };
+
+      $("#next").onclick = () => sock.send({ type: "next" });
+
+      // Two-tap reset (no browser dialogs).
+      let resetArmed = null;
+      $("#reset").onclick = (e) => {
+        const btn = e.currentTarget;
+        if (resetArmed) {
+          clearTimeout(resetArmed);
+          resetArmed = null;
+          btn.textContent = "Reset";
+          sock.send({ type: "reset" });
+          return;
+        }
+        btn.textContent = "Sure?";
+        resetArmed = setTimeout(() => {
+          resetArmed = null;
+          btn.textContent = "Reset";
+        }, 3000);
+      };
+
+      function keyFor(s) {
+        const b = s.buzz ? [s.buzz.holder, s.buzz.lockedOut.length].join("|") : "";
+        return JSON.stringify([s.phase, s.question && s.question.index, b, s.answered, s.reveal, s.standings.map((p) => [p.name, p.score, p.connected])]);
+      }
+
+      function keyCard(s) {
+        if (!s.key) return "";
+        const alts = (s.key.accept || []).slice(1);
+        return `<div class="key"><div class="label">Answer</div>
+          <div class="val">${esc(s.key.correct)}</div>
+          ${alts.length ? `<div class="alts">also take: ${alts.map(esc).join(" · ")}</div>` : ""}</div>`;
+      }
+
+      function render() {
+        $("#controls").hidden = false;
+        const s = state;
+        const total = s.question ? s.question.total : 0;
+        const label = {
+          lobby: "Start quiz",
+          question: "End question",
+          reveal: s.question && s.question.index + 1 >= total ? "Final results" : "Leaderboard",
+          leaderboard: s.question && s.question.index + 1 >= total ? "Final results" : "Next question",
+          final: "—",
+        }[s.phase];
+        $("#next").textContent = `${label}  ›`;
+        $("#next").disabled = s.phase === "final" || (s.phase === "lobby" && s.standings.length === 0);
+        const here = s.standings.filter((p) => p.connected).length;
+        $("#info").textContent = `${here}/${s.standings.length} here`;
+
+        const k = keyFor(s);
+        if (k === screenKey) return;
+        screenKey = k;
+        const app = $("#app");
+        app.className = "ctl";
+
+        if (s.phase === "lobby") {
+          app.innerHTML = `<div class="big">Lobby · ${s.standings.length} joined</div>
+            <p class="mini">Tap a name twice to remove them. TV shows the QR code.</p>
+            <div class="chips">${s.standings
+              .map((p) => `<button class="chip ${p.connected ? "" : "off"}" data-kick="${esc(p.id)}">${esc(p.name)}</button>`)
+              .join("")}</div>`;
+          wireKicks(app);
+          return;
+        }
+
+        if (s.phase === "question") return renderQuestion(app, s);
+        if (s.phase === "reveal") return renderReveal(app, s);
+        if (s.phase === "leaderboard" || s.phase === "final") return renderBoard(app, s);
+      }
+
+      function qHeader(s, withTimer) {
+        const q = s.question;
+        return `<div class="rowline"><span class="badge">Q${q.index + 1}/${q.total} · ${esc(q.category)} · ${TYPE_LABEL[q.type]}</span>
+            ${withTimer ? `<span class="timer" id="t">–</span>` : ""}</div>
+          <div class="qtext">${esc(q.text)}</div>`;
+      }
+
+      function renderQuestion(app, s) {
+        const q = s.question;
+        const players = s.standings.filter((p) => p.connected).length;
+
+        if (q.type !== "buzzer") {
+          app.innerHTML = qHeader(s, true) + keyCard(s) +
+            `<div class="mini" style="text-align:center;margin-top:14px">${s.answered}/${players} answered — ends itself when everyone has</div>`;
+          return;
+        }
+
+        const b = s.buzz;
+        if (b.holder) {
+          app.innerHTML = qHeader(s, true) + keyCard(s) +
+            `<div class="holder"><div class="mini">answering out loud</div><div class="who">${esc(b.holder)}</div></div>
+            <div class="verdicts">
+              <button class="no" id="vNo">✗ Wrong −250</button>
+              <button class="yes" id="vYes">✓ Correct +1000</button>
+            </div>
+            <p class="mini" style="text-align:center">Wrong or timed out → they're locked out and the buzzers reopen</p>`;
+          $("#vYes").onclick = () => sock.send({ type: "judge", correct: true });
+          $("#vNo").onclick = () => sock.send({ type: "judge", correct: false });
+          return;
+        }
+        app.innerHTML = qHeader(s, true) + keyCard(s) +
+          `<div class="holder"><div class="who" style="font-size:1.3rem">Buzzers open</div>
+            ${b.lockedOut.length ? `<div class="mini">${b.lockedOut.length} locked out</div>` : ""}</div>`;
+      }
+
+      function renderReveal(app, s) {
+        const q = s.question;
+        const r = s.reveal;
+        let body = "";
+        if (q.type === "mc") {
+          body = `<div class="mini" style="margin-top:10px">${q.options
+            .map((o, i) => `${i === r.answer ? "✓" : "·"} ${esc(o)} — ${r.counts[i]}`)
+            .join("<br />")}</div>`;
+        } else {
+          const items = q.type === "text" ? r.answers : r.attempts;
+          const ref = (a) => (q.type === "text" ? a.id : a.i);
+          body = items.length
+            ? `<div class="answers">${items
+                .map(
+                  (a) => `<button class="ans ${a.correct ? "right" : "wrong"}" data-ref="${esc(ref(a))}">
+                    <span>${q.type === "text" ? `${esc(a.text)}<small>${esc(a.name)}</small>` : `${esc(a.name)}<small>${a.points > 0 ? "+" : ""}${a.points}</small>`}</span>
+                    <span class="${a.correct ? "good" : "bad"}">${a.correct ? "✓" : "✗"}</span></button>`,
+                )
+                .join("")}</div><p class="mini" style="text-align:center">Tap to flip right/wrong — scores recompute</p>`
+            : `<p class="mini" style="text-align:center">${q.type === "buzzer" ? "Nobody buzzed" : "No answers"}</p>`;
+        }
+        app.innerHTML = qHeader(s, false) + keyCard(s) + body;
+        app.querySelectorAll("[data-ref]").forEach((b) => {
+          b.onclick = () => sock.send({ type: "toggle", q: q.index, ref: q.type === "text" ? b.dataset.ref : Number(b.dataset.ref) });
+        });
+      }
+
+      function renderBoard(app, s) {
+        app.innerHTML = `<div class="big">${s.phase === "final" ? "Final results" : "Leaderboard"}</div>
+          <div class="board boardsm">${s.standings
+            .map(
+              (p) => `<div class="row"><span class="rank">#${p.rank}</span><span>${esc(p.name)}</span>
+                <span class="delta ${p.delta > 0 ? "good" : p.delta < 0 ? "bad" : "muted"}">${p.delta > 0 ? "+" : ""}${p.delta || ""}</span>
+                <span>${p.score}</span></div>`,
+            )
+            .join("")}</div>`;
+      }
+
+      function wireKicks(root) {
+        root.querySelectorAll("[data-kick]").forEach((b) => {
+          b.onclick = () => {
+            if (b.dataset.armed) return sock.send({ type: "kick", player: b.dataset.kick });
+            b.dataset.armed = "1";
+            b.textContent = "Remove " + b.textContent + "?";
+          };
+        });
+      }
+
+      startTicker((ms) => {
+        const t = $("#t");
+        if (!t || !state || state.phase !== "question") return;
+        const secs = Math.ceil(ms / 1000);
+        t.textContent = secs;
+        t.classList.toggle("low", secs <= 5);
+      });
+    </script>
+  </body>
+</html>

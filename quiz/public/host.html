@@ -166,7 +166,7 @@
         } else {
           const b = s.buzz;
           body = b.holder
-            ? `<div class="status"><span class="good">${esc(b.holder)}</span> buzzed in and is answering…</div>`
+            ? `<div class="status"><span class="good">${esc(b.holder)}</span> buzzed in — answer out loud!</div>`
             : `<div class="status">Buzzers are open!${b.lockedOut.length ? `<br /><span class="muted" style="font-size:.6em">${b.lockedOut.length} locked out</span>` : ""}</div>`;
         }
         app.innerHTML = qHeader(s) + `<div class="bar"><i id="bar"></i></div>` + body;
@@ -192,7 +192,7 @@
               ? `<div class="answers">${items
                   .map(
                     (a) => `<button class="ans ${a.correct ? "right" : "wrong"}" data-ref="${esc(ref(a))}" title="Tap to mark ${a.correct ? "wrong" : "right"}">
-                      <span>${esc(a.text)}<small>${esc(a.name)}${q.type === "buzzer" ? ` · ${a.points > 0 ? "+" : ""}${a.points}` : ""}</small></span>
+                      <span>${q.type === "text" ? `${esc(a.text)}<small>${esc(a.name)}</small>` : `${esc(a.name)}<small>${a.points > 0 ? "+" : ""}${a.points}</small>`}</span>
                       <span class="${a.correct ? "good" : "bad"}">${a.correct ? "✓" : "✗"}</span></button>`,
                   )
                   .join("")}</div><div class="muted" style="text-align:center">Tap an answer to mark it right or wrong</div>`

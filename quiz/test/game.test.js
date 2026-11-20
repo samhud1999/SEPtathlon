@@ -109,22 +109,25 @@ test("free text: auto marking and host override", () => {
   assert.equal(g.revealView().answers[0].name, "Sol");
 });
 
-test("buzzer: first buzz wins, wrong answer locks out and reopens, right answer ends", () => {
+test("buzzer: first buzz wins, host judges; wrong locks out and reopens, right ends", () => {
   const { g, clock } = setup([Q.buzz]);
   g.next();
+  assert.equal(g.hostView().key.correct, "Amazon", "controller sees the answer");
+  assert.equal(g.playerView("a").key, undefined, "players never see it");
+  assert.equal(g.judge(true).error, "Nobody has buzzed");
   clock.advance(5000);
   assert.ok(g.buzz("b").ok);
   assert.equal(g.buzz("a").error, "Too slow");
   assert.equal(g.playerView("a").buzz.holder, "Kajsa");
   assert.equal(g.playerView("b").buzz.mine, true);
-  assert.equal(g.answer("a", { text: "Amazon" }).error, "Not your buzz");
-  g.answer("b", { text: "Nile" });
+  assert.ok(g.answer("b", { text: "Nile" }).error, "typed answers are refused — it's verbal");
+  g.judge(false);
   assert.equal(g.phase, "question", "reopened");
   assert.equal(g.score("b"), -250);
   assert.equal(g.buzz("b").error, "You're locked out");
   assert.equal(g.timeLeft(), 15000, "buzz window resumes where it paused");
   assert.ok(g.buzz("c").ok);
-  g.answer("c", { text: "the amazon" });
+  g.judge(true);
   assert.equal(g.phase, "reveal");
   assert.equal(g.score("c"), 1000);
   assert.deepEqual(g.revealView().attempts.map((x) => x.correct), [false, true]);
@@ -140,11 +143,11 @@ test("buzzer: answer timeout counts as wrong; everyone locked out ends it; nobod
   g.tick();
   assert.equal(g.score("a"), -250);
   g.buzz("b");
-  g.answer("b", { text: "x" });
+  g.judge(false);
   g.buzz("c");
-  g.answer("c", { text: "y" });
+  g.judge(false);
   assert.equal(g.phase, "reveal", "all locked out");
-  g.toggle(0, 2); // host decides "y" was fine
+  g.toggle(0, 2); // host changes their mind about Jake's answer
   assert.equal(g.score("c"), 1000);
 
   g.next(); // leaderboard

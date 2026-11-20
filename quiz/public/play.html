@@ -157,13 +157,13 @@
           return;
         }
 
-        // buzzer
+        // buzzer — answers are spoken; the host judges from their phone
         const b = s.buzz || {};
         if (b.mine) {
-          app.innerHTML = header(s) + `<div class="big good">You buzzed! Type it in</div>` + answerForm("Your answer");
-          wireForm();
+          app.innerHTML = header(s) + `<div class="center"><div class="big good">You buzzed!</div>
+            <p class="muted">Say your answer out loud — the host marks it</p></div>`;
         } else if (b.holder) {
-          app.innerHTML = header(s) + `<div class="center"><div class="big">${esc(b.holder)} buzzed in…</div></div>`;
+          app.innerHTML = header(s) + `<div class="center"><div class="big">${esc(b.holder)} buzzed in…</div><p class="muted">Listen up — if they miss, the buzzers reopen</p></div>`;
         } else if (b.lockedOut) {
           app.innerHTML = header(s) + `<div class="center"><div class="big bad">Locked out</div><p class="muted">Wait for the next question</p></div>`;
         } else {

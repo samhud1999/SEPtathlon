@@ -8,8 +8,9 @@
  * Question types
  *  - mc:     everyone picks one of the options. Correct = 500 + up to 500 for speed.
  *  - text:   everyone types an answer. Fuzzy-matched; correct = 1000. Host can override.
- *  - buzzer: first to buzz gets to type an answer. Correct = 1000, wrong = -250 and
- *            they're locked out while the buzzers reopen for everyone else.
+ *  - buzzer: first to buzz answers OUT LOUD; the host judges it from the phone
+ *            controller (/control). Correct = 1000 and the question ends; wrong or
+ *            timed out = -250 and they're locked out while the buzzers reopen.
  *
  * Scores are always recomputed from the stored results, so host overrides on any
  * earlier question simply change the totals.
@@ -192,7 +193,7 @@ class Game {
     const b = this.q.buzz;
     if (b && b.holder) {
       if (this.now() >= b.deadline) {
-        this.resolveBuzz(b.holder, null);
+        this.resolveBuzz(b.holder, false);
         return true;
       }
       return false;
@@ -207,7 +208,7 @@ class Game {
   endQuestion() {
     if (this.phase !== "question") return;
     const b = this.q.buzz;
-    if (b && b.holder) this.resolveBuzz(b.holder, null, { reopen: false });
+    if (b && b.holder) this.resolveBuzz(b.holder, false, { reopen: false });
     this.phase = "reveal";
   }
 
@@ -222,7 +223,7 @@ class Game {
     const q = this.question;
     const r = this.results[this.qIndex];
 
-    if (q.type === "buzzer") return this.buzzAnswer(id, payload);
+    if (q.type === "buzzer") return { error: "Say it out loud — the host judges buzzes" };
     if (r.answers.has(id)) return { error: "Already answered" };
 
     const elapsed = this.now() - this.q.startedAt;
@@ -258,24 +259,21 @@ class Game {
     return { ok: true };
   }
 
-  buzzAnswer(id, payload) {
+  /** Host verdict on the current buzz: the player answered out loud. */
+  judge(correct) {
+    if (this.phase !== "question" || this.question?.type !== "buzzer") return { error: "Not now" };
     const b = this.q.buzz;
-    if (b.holder !== id) return { error: "Not your buzz" };
-    const text = String(payload?.text ?? "").trim().slice(0, 80);
-    if (!text) return { error: "Type an answer" };
-    this.resolveBuzz(id, text);
+    if (!b.holder) return { error: "Nobody has buzzed" };
+    this.resolveBuzz(b.holder, Boolean(correct));
     return { ok: true };
   }
 
-  resolveBuzz(id, text, { reopen = true } = {}) {
+  resolveBuzz(id, correct, { reopen = true } = {}) {
     const b = this.q.buzz;
     const r = this.results[this.qIndex];
-    const correct = text != null && isMatch(text, this.question.accept);
     r.attempts.push({
       pid: id,
-      text: text ?? "(no answer)",
       correct,
-      auto: correct,
       points: correct ? POINTS.correct : POINTS.buzzWrong,
     });
     b.holder = null;
@@ -354,17 +352,21 @@ class Game {
         .map(([id, a]) => ({ id, name: name(id), text: a.text, correct: a.correct, auto: a.auto }))
         .sort((x, y) => Number(y.correct) - Number(x.correct) || x.name.localeCompare(y.name));
     } else {
-      out.attempts = r.attempts.map((t, i) => ({ i, name: name(t.pid), text: t.text, correct: t.correct, points: t.points }));
+      out.attempts = r.attempts.map((t, i) => ({ i, name: name(t.pid), correct: t.correct, points: t.points }));
     }
     return out;
   }
 
   hostView() {
     const r = this.results[this.qIndex];
+    const q = this.question;
+    const showKey = this.phase === "question" || this.phase === "reveal";
     return {
       role: "host",
       phase: this.phase,
       question: this.phase === "lobby" ? null : this.publicQuestion(),
+      // The answer, for the host's phone controller. Only host-authed sockets see this.
+      key: showKey && q ? { correct: this.correctAnswerText(q), accept: q.type === "mc" ? undefined : q.accept } : null,
       timeLeft: this.timeLeft(),
       buzz: this.phase === "question" ? this.buzzView() : null,
       answered: r ? r.answers.size : 0,
