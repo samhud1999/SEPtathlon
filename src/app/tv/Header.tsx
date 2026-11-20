@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { EventInfo, StatePayload } from "@/lib/types";
+import { nextEvent } from "@/lib/events";
 import styles from "./tv.module.css";
 
 function Clock() {
@@ -69,16 +70,12 @@ export default function Header({
     payload.liveEventId === null
       ? null
       : (payload.events.find((e) => e.id === payload.liveEventId) ?? null);
-  const next =
-    payload.events
-      .filter((e) => e.status === "UPCOMING")
-      .sort((a, b) => a.id - b.id)[0] ?? null;
+  const next = nextEvent(payload.events);
 
   return (
     <header className={styles.header}>
       <div className={styles.brand}>
         <div className={styles.title}>THE SEPTATHLON</div>
-        <div className={styles.subtitle}>The Sanctum of Separation Creek</div>
       </div>
       <div className={styles.headerSpacer} />
       <EventChip live={live} next={next} />

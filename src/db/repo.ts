@@ -268,11 +268,12 @@ export async function previewScores(eventId: number, inputs: ScoreInput[]): Prom
 export async function setEventStatus(eventId: number, status: EventStatus): Promise<StatePayload> {
   await mutate(async (tx) => {
     const event = await requireEvent(tx, eventId);
-    if (status === "LIVE") {
+    // Only one event can be LIVE and only one can be marked NEXT at a time.
+    if (status === "LIVE" || status === "NEXT") {
       await tx
         .update(events)
         .set({ status: "UPCOMING", updatedAt: new Date() })
-        .where(and(eq(events.status, "LIVE"), ne(events.id, eventId)));
+        .where(and(eq(events.status, status), ne(events.id, eventId)));
     }
     await tx.update(events).set({ status, updatedAt: new Date() }).where(eq(events.id, eventId));
     // Guided typed-score entry is quiet; the lifecycle moments banner the TV.

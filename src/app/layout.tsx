@@ -21,7 +21,7 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "CreekOS — The SEPtathlon",
-  description: "The Sanctum of Separation Creek: live tournament tracker and broadcast.",
+  description: "The SEPtathlon: live tournament tracker and broadcast.",
 };
 
 export const viewport: Viewport = {

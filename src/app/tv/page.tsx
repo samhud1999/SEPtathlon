@@ -3,7 +3,7 @@ import TvDashboard from "./TvDashboard";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "THE SEPTATHLON — The Sanctum of Separation Creek",
+  title: "THE SEPTATHLON",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

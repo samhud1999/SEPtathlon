@@ -88,7 +88,7 @@ export default function RosterTab() {
           onToggle={() => setOpenId(openId === p.id ? null : p.id)}
         />
       ))}
-      {active.length === 0 ? <p className={styles.muted}>The Sanctum stands empty.</p> : null}
+      {active.length === 0 ? <p className={styles.muted}>No tributes yet.</p> : null}
 
       {benched.length > 0 ? (
         <>
@@ -169,7 +169,7 @@ function PlayerRow({
         <Avatar name={p.name} size={44} />
         <span className={styles.rowInfo}>
           <span className={styles.rowName}>{p.name}</span>
-          <span className={styles.rowEpithet}>{p.epithet}</span>
+          {p.epithet !== "Tribute of the Creek" ? <span className={styles.rowEpithet}>{p.epithet}</span> : null}
           <span className={styles.rowBadges}>
             {p.jokerEventId != null ? (
               <span className={styles.matchTag}>🃏 E{p.jokerEventId}</span>

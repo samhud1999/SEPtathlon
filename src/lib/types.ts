@@ -5,7 +5,7 @@
  */
 
 export type TvMode = "LEADERBOARD" | "LIVE_EVENT" | "BLOOD_STAGE";
-export type EventStatus = "UPCOMING" | "LIVE" | "COMPLETED";
+export type EventStatus = "UPCOMING" | "NEXT" | "LIVE" | "COMPLETED";
 export type ScoringType = "ELIMINATION" | "RAW_HIGH" | "FRUIT_SPLIT" | "BLOOD_MATRIX";
 export type BloodCard = "PURE" | "BLOOD";
 

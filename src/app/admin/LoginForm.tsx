@@ -31,7 +31,7 @@ export default function LoginForm({ pinFromUrl }: { pinFromUrl: string | null })
       setError(isErrorBody(body) ? body.error : `Login failed (${res.status})`);
       setPending(false);
     } catch {
-      setError("No reply from the Sanctum — check the connection.");
+      setError("No reply from the server — check the connection.");
       setPending(false);
     }
   };
@@ -48,7 +48,6 @@ export default function LoginForm({ pinFromUrl }: { pinFromUrl: string | null })
   return (
     <main className={styles.loginRoot}>
       <h1 className={styles.wordmark}>CREEKOS</h1>
-      <p className={styles.loginLore}>The Sanctum of Separation Creek</p>
       <form
         className={styles.loginForm}
         onSubmit={(e) => {
@@ -81,7 +80,7 @@ export default function LoginForm({ pinFromUrl }: { pinFromUrl: string | null })
           className={`${styles.btn} ${styles.btnGold} ${styles.btnBig}`}
           disabled={pending || pin.trim() === ""}
         >
-          {pending ? "CONSULTING THE CREEK…" : "ENTER THE SANCTUM"}
+          {pending ? "CHECKING…" : "ENTER"}
         </button>
       </form>
     </main>

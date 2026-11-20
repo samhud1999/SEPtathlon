@@ -16,6 +16,13 @@ import GodModeTable from "./GodModeTable";
 
 type Mode = "guided" | "god";
 
+const STATUS_LABEL: Record<EventStatus, string> = {
+  UPCOMING: "Upcoming",
+  NEXT: "Up next",
+  LIVE: "Live",
+  COMPLETED: "Done",
+};
+
 export default function EventsTab() {
   const { state, mutate } = useAdmin();
   const [eventId, setEventId] = useState<number>(() => state.liveEventId ?? 1);
@@ -45,13 +52,14 @@ export default function EventsTab() {
         {state.events.map((e) => (
           <option key={e.id} value={e.id}>
             E{e.id} · {e.name} — {e.sin}
+            {e.status === "LIVE" ? " (live)" : e.status === "NEXT" ? " (up next)" : e.status === "COMPLETED" ? " ✓" : ""}
           </option>
         ))}
       </select>
 
       <Seg<EventStatus>
         ariaLabel="Event status"
-        options={EVENT_STATUSES.map((s) => ({ value: s, label: s }))}
+        options={EVENT_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
         value={event.status}
         onChange={setStatus}
       />

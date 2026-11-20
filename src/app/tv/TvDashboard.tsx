@@ -224,8 +224,8 @@ export default function TvDashboard({ endpoint }: { endpoint: string }) {
       <div className={styles.root}>
         <div className={styles.awaitWrap}>
           <div>
-            <div className={styles.awaitTitle}>THE SANCTUM AWAKENS</div>
-            <div className={styles.awaitSub}>reaching for the Creek…</div>
+            <div className={styles.awaitTitle}>THE SEPTATHLON</div>
+            <div className={styles.awaitSub}>Loading…</div>
           </div>
         </div>
         {signalBadge}

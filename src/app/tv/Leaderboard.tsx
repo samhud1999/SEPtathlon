@@ -6,6 +6,9 @@ import { CURSE_LEVELS } from "@/lib/constants";
 import { fmtPts, fmtSigned } from "@/lib/format";
 import styles from "./tv.module.css";
 
+/** The schema default; only show epithets someone actually wrote. */
+const DEFAULT_EPITHET = "Tribute of the Creek";
+
 export type FlashMap = Map<number, Map<string, 1 | -1>>;
 
 const EVENT_KEYS = ["1", "2", "3", "4", "5", "6"] as const;
@@ -24,18 +27,21 @@ function Trend({ trend }: { trend: number | null }) {
 function Row({
   row,
   isLast,
+  anyPoints,
   liveEventId,
   version,
   cellFlash,
 }: {
   row: LeaderboardRow;
   isLast: boolean;
+  anyPoints: boolean;
   liveEventId: number | null;
   version: number;
   cellFlash: Map<string, 1 | -1> | undefined;
 }) {
-  const isSovereign = row.rank === 1;
-  const isVessel = isLast && !isSovereign;
+  // Highlight first and last only once scoring has started (avoids a 12-way crown at 0).
+  const isSovereign = anyPoints && row.rank === 1;
+  const isVessel = anyPoints && isLast && row.rank !== 1;
   const curseHot = liveEventId === 4;
 
   const rowClass = `${styles.cols} ${styles.row}${isSovereign ? ` ${styles.rowFirst}` : ""}${
@@ -97,17 +103,11 @@ function Row({
             </span>
           )}
         </div>
-        <div className={styles.subLine}>
-          <span className={styles.epithet}>{row.epithet}</span>
-          {isSovereign && (
-            <span className={`${styles.microLabel} ${styles.microGold}`}>
-              The Purified Sovereign
-            </span>
-          )}
-          {isVessel && (
-            <span className={`${styles.microLabel} ${styles.microBlood}`}>The Vessel of Sins</span>
-          )}
-        </div>
+        {row.epithet && row.epithet !== DEFAULT_EPITHET ? (
+          <div className={styles.subLine}>
+            <span className={styles.epithet}>{row.epithet}</span>
+          </div>
+        ) : null}
       </div>
 
       {EVENT_KEYS.map((key) => {
@@ -178,6 +178,7 @@ export default function Leaderboard({
 }) {
   const eventById = new Map(payload.events.map((e) => [e.id, e]));
   const rows = payload.leaderboard;
+  const anyPoints = rows.some((r) => r.total !== 0);
 
   return (
     <section className={`${styles.panel} ${styles.board}`}>
@@ -224,6 +225,7 @@ export default function Leaderboard({
                 key={row.playerId}
                 row={row}
                 isLast={i === rows.length - 1 && rows.length > 1}
+                anyPoints={anyPoints}
                 liveEventId={payload.liveEventId}
                 version={payload.version}
                 cellFlash={flash.get(row.playerId)}

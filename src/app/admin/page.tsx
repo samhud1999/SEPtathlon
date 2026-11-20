@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "CreekOS — Commissioner",
-  description: "The Commissioner's Wand: mobile admin portal for the SEPtathlon.",
+  description: "Commissioner portal for the SEPtathlon.",
 };
 
 /**

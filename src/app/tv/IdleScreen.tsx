@@ -18,8 +18,7 @@ export default function IdleScreen({ events }: { events: EventInfo[] }) {
 
   return (
     <div className={styles.idle}>
-      <div className={styles.idleTitle}>THE TRIBUTES GATHER</div>
-      <div className={styles.idleSub}>awaiting the first names at the Sanctum</div>
+      <div className={styles.idleTitle}>THE SEPTATHLON</div>
       <div className={styles.idleEvents}>
         {list.map((ev) => (
           <div key={ev.id} className={styles.idleEvent}>

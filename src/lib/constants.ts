@@ -37,7 +37,7 @@ export const SIN_TAGS: readonly string[] = [
 export const CURSE_LEVELS = ["Clean", "Off-Hand", "Knees", "Blind Backwards"] as const;
 
 export const TV_MODES = ["LEADERBOARD", "LIVE_EVENT", "BLOOD_STAGE"] as const satisfies readonly TvMode[];
-export const EVENT_STATUSES = ["UPCOMING", "LIVE", "COMPLETED"] as const satisfies readonly EventStatus[];
+export const EVENT_STATUSES = ["UPCOMING", "NEXT", "LIVE", "COMPLETED"] as const satisfies readonly EventStatus[];
 export const SCORING_TYPES = ["ELIMINATION", "RAW_HIGH", "FRUIT_SPLIT", "BLOOD_MATRIX"] as const satisfies readonly ScoringType[];
 export const BLOOD_CARDS = ["PURE", "BLOOD"] as const satisfies readonly BloodCard[];
 

@@ -112,7 +112,7 @@ export default function AdminApp() {
             body: body !== undefined ? JSON.stringify(body) : undefined,
           });
         } catch {
-          const msg = "No reply from the Sanctum — check the connection.";
+          const msg = "No reply from the server — check the connection.";
           if (!silent) toast("error", msg);
           throw new ApiError(0, msg);
         }
@@ -185,7 +185,7 @@ export default function AdminApp() {
         <div className={styles.loadingRune} aria-hidden>
           ⚡
         </div>
-        <div>SUMMONING THE SANCTUM…</div>
+        <div>LOADING…</div>
         {offline ? <div className={styles.danger}>NO SIGNAL — RETRYING</div> : null}
       </main>
     );
@@ -202,7 +202,6 @@ export default function AdminApp() {
             <span className={styles.pill}>v{api.state.version}</span>
           </div>
         </header>
-        <p className={styles.subtitle}>The Commissioner&apos;s Wand</p>
 
         <main>
           <section className={styles.pane} hidden={tab !== "decree"}>

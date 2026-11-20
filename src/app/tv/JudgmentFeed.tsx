@@ -9,11 +9,10 @@ export default function JudgmentFeed({ decrees }: { decrees: DecreeRow[] }) {
     <section className={styles.panel}>
       <header className={styles.panelHead}>
         <span className={styles.panelTitle}>The Scroll of Judgment</span>
-        <span className={styles.panelSub}>⚡ decrees of the Commissioner</span>
       </header>
       <div className={styles.feedBody}>
         {decrees.length === 0 ? (
-          <div className={styles.feedEmpty}>The Creek has issued no judgments… yet.</div>
+          <div className={styles.feedEmpty}>No decrees yet.</div>
         ) : (
           decrees.map((d) => (
             <article

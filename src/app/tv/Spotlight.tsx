@@ -3,13 +3,14 @@
 import type { EventInfo, EventResultRow, StatePayload } from "@/lib/types";
 import { CURSE_LEVELS, DEFAULT_LIVES } from "@/lib/constants";
 import { fmtErrPct, fmtPts, fmtSigned, ordinal, rankLabel } from "@/lib/format";
+import { nextEvent } from "@/lib/events";
 import styles from "./tv.module.css";
 
 const TYPE_FLAVOR: Record<string, string> = {
-  ELIMINATION: "Last tribute standing takes the gold",
-  RAW_HIGH: "The highest score claims the Creek's favour",
-  FRUIT_SPLIT: "Closest to the perfect half survives envy",
-  BLOOD_MATRIX: "Trust no one at the standoff",
+  ELIMINATION: "Last one standing wins",
+  RAW_HIGH: "Highest score wins",
+  FRUIT_SPLIT: "Closest to a perfect half wins",
+  BLOOD_MATRIX: "Pure or Blood?",
 };
 
 function effectiveRank(row: EventResultRow): number {
@@ -257,17 +258,13 @@ function BloodPreviewSpot({ payload }: { payload: StatePayload }) {
 }
 
 function Teaser({ payload }: { payload: StatePayload }) {
-  const next =
-    payload.events
-      .filter((e) => e.status === "UPCOMING")
-      .sort((a, b) => a.id - b.id)[0] ?? null;
+  const next = nextEvent(payload.events);
 
   if (next === null) {
     return (
       <div className={styles.teaser}>
         <span className={styles.teaserLabel}>The Septathlon</span>
         <span className={styles.teaserSin}>All Trials Complete</span>
-        <span className={styles.teaserFlavor}>The Creek has judged. The Sovereign stands purified.</span>
       </div>
     );
   }
@@ -279,7 +276,9 @@ function Teaser({ payload }: { payload: StatePayload }) {
       <span className={styles.teaserName}>
         E{next.id} · {next.name}
       </span>
-      <span className={styles.teaserFlavor}>{TYPE_FLAVOR[next.scoringType] ?? "The Sanctum prepares…"}</span>
+      {TYPE_FLAVOR[next.scoringType] ? (
+        <span className={styles.teaserFlavor}>{TYPE_FLAVOR[next.scoringType]}</span>
+      ) : null}
     </div>
   );
 }
