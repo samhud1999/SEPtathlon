@@ -74,7 +74,7 @@ function Row({
         <span className={styles.rankNum}>{row.rank}</span>
       </div>
 
-      <div>
+      <div className={styles.colWide}>
         <Trend trend={row.trend} />
       </div>
 
@@ -115,7 +115,10 @@ function Row({
         const isJokerCell = row.jokerEventId !== null && String(row.jokerEventId) === key;
         const isLiveCol = liveEventId !== null && String(liveEventId) === key;
         return (
-          <div key={key} className={`${styles.cell}${isLiveCol ? ` ${styles.cellLive}` : ""}`}>
+          <div
+            key={key}
+            className={`${styles.cell} ${styles.colWide}${isLiveCol ? ` ${styles.cellLive}` : ""}`}
+          >
             {numCell(
               `e${key}`,
               <>
@@ -128,7 +131,9 @@ function Row({
         );
       })}
 
-      <div className={`${styles.cell}${liveEventId === 7 ? ` ${styles.cellLive}` : ""}`}>
+      <div
+        className={`${styles.cell} ${styles.colWide}${liveEventId === 7 ? ` ${styles.cellLive}` : ""}`}
+      >
         {numCell(
           "blood",
           row.bloodTotal === 0 ? "0" : fmtSigned(row.bloodTotal),
@@ -140,7 +145,7 @@ function Row({
         )}
       </div>
 
-      <div className={styles.cell}>
+      <div className={`${styles.cell} ${styles.colWide}`}>
         {numCell(
           "decree",
           row.decreeTotal === 0 ? "0" : fmtSigned(row.decreeTotal),
@@ -178,23 +183,28 @@ export default function Leaderboard({
     <section className={`${styles.panel} ${styles.board}`}>
       <div className={`${styles.cols} ${styles.boardHead}`}>
         <div className={styles.colHeadL}>Rank</div>
-        <div className={styles.colHeadL}>±</div>
+        <div className={`${styles.colHeadL} ${styles.colWide}`}>±</div>
         <div className={styles.colHeadL}>Tribute</div>
         {EVENT_KEYS.map((key) => {
           const ev = eventById.get(Number(key));
           const isLive = payload.liveEventId !== null && String(payload.liveEventId) === key;
           return (
-            <div key={key} className={`${styles.evHead}${isLive ? ` ${styles.evHeadLive}` : ""}`}>
+            <div
+              key={key}
+              className={`${styles.evHead} ${styles.colWide}${isLive ? ` ${styles.evHeadLive}` : ""}`}
+            >
               <span className={styles.evNum}>E{key}</span>
               <span className={styles.evSin}>{ev?.sin ?? ""}</span>
             </div>
           );
         })}
-        <div className={`${styles.evHead}${payload.liveEventId === 7 ? ` ${styles.evHeadLive}` : ""}`}>
+        <div
+          className={`${styles.evHead} ${styles.colWide}${payload.liveEventId === 7 ? ` ${styles.evHeadLive}` : ""}`}
+        >
           <span className={styles.evNum}>E7</span>
           <span className={styles.evSin}>{eventById.get(7)?.sin ?? "Blood"}</span>
         </div>
-        <div className={styles.evHead}>
+        <div className={`${styles.evHead} ${styles.colWide}`}>
           <span className={styles.evNum}>⚡</span>
           <span className={styles.evSin}>Decrees</span>
         </div>

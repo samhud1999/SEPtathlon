@@ -26,6 +26,9 @@
   inset: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  /* An implicit grid column sizes to content, so long nowrap text would push the
+     whole shell wider than the screen. Pin it to the viewport. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.1vh;
   padding: 1.2vh 1vw 1.4vh;
   overflow: hidden;
@@ -1766,5 +1769,404 @@
   100% {
     background-color: transparent;
     box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Phone layout (≤ 760px wide)
+   The 16:9 broadcast becomes a scrolling, single-column board: header wraps,
+   the leaderboard keeps rank / tribute / total, and the sidebar panels stack
+   underneath at their natural height. The TV layout above is untouched.
+   ========================================================================== */
+
+.colWide {
+  /* hook for columns hidden on phones */
+}
+
+@media (max-width: 760px) {
+  .root {
+    position: relative;
+    inset: auto;
+    min-height: 100dvh;
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: 12px;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    overflow: visible;
+  }
+
+  .root::after {
+    position: fixed;
+    box-shadow: inset 0 0 80px 10px rgba(2, 4, 8, 0.5);
+  }
+
+  .awaitWrap {
+    min-height: calc(100dvh - 40px);
+    padding: 0 12px;
+  }
+
+  .awaitTitle {
+    font-size: 1.35rem;
+    letter-spacing: 0.18em;
+  }
+
+  /* header: brand on top, chip + clock below */
+  .header {
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    padding: 10px 12px;
+  }
+
+  .brand {
+    flex: 1 1 100%;
+  }
+
+  .title {
+    font-size: 1.35rem;
+    letter-spacing: 0.1em;
+  }
+
+  .subtitle {
+    font-size: 0.56rem;
+    letter-spacing: 0.24em;
+  }
+
+  .headerSpacer,
+  .hintChip,
+  .wakeDot {
+    display: none;
+  }
+
+  .liveChip {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+    font-size: 0.78rem;
+  }
+
+  .liveChip .chipSin {
+    display: none;
+  }
+
+  .clock {
+    font-size: 1rem;
+  }
+
+  .signalLost {
+    position: fixed;
+    top: auto;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    right: 12px;
+    font-size: 0.7rem;
+  }
+
+  /* stack every zone */
+  .main,
+  .mainBoard,
+  .mainLive,
+  .mainStage,
+  .mainSingle {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .sidebar,
+  .sidebarLive {
+    grid-template-rows: auto auto;
+    gap: 12px;
+  }
+
+  .panelHead,
+  .spotHead {
+    padding: 10px 12px 9px;
+  }
+
+  .panelTitle {
+    font-size: 0.95rem;
+  }
+
+  .panelSub {
+    font-size: 0.65rem;
+  }
+
+  /* leaderboard: rank · tribute · total */
+  .colWide {
+    display: none;
+  }
+
+  .cols {
+    grid-template-columns: 2.6em minmax(0, 1fr) auto;
+    column-gap: 10px;
+    padding-inline: 12px;
+  }
+
+  .boardHead {
+    padding-block: 8px;
+    font-size: 0.62rem;
+  }
+
+  .body {
+    flex: none;
+  }
+
+  .row {
+    flex: none;
+    padding-block: 9px;
+  }
+
+  .crown {
+    font-size: 0.9rem;
+  }
+
+  .rankNum {
+    font-size: 1.15rem;
+  }
+
+  .name {
+    font-size: 1.05rem;
+  }
+
+  .nameLine {
+    flex-wrap: wrap;
+    row-gap: 3px;
+  }
+
+  .subLine {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .epithet {
+    font-size: 0.74rem;
+  }
+
+  .microLabel {
+    font-size: 0.56rem;
+    letter-spacing: 0.2em;
+  }
+
+  .badge {
+    font-size: 0.66rem;
+  }
+
+  .total,
+  .mainLive .total {
+    font-size: 1.45rem;
+  }
+
+  .mainLive .epithet {
+    display: block;
+  }
+
+  .mainLive .name {
+    font-size: 1.05rem;
+  }
+
+  .emptyBoard {
+    padding: 28px 12px;
+    text-align: center;
+  }
+
+  /* spotlight + judgment feed: natural height, no fade-out masks */
+  .spotBody,
+  .feedBody {
+    flex: none;
+    padding: 10px 12px 14px;
+    gap: 10px;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .spotSin {
+    font-size: 1.1rem;
+  }
+
+  .spotEvent {
+    font-size: 0.85rem;
+  }
+
+  .aliveGrid,
+  .spotExpanded .aliveGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .aliveCard {
+    padding: 6px 8px;
+  }
+
+  .aliveName,
+  .scoreName,
+  .prevName,
+  .decreeName {
+    font-size: 0.9rem;
+  }
+
+  .scoreRow {
+    padding: 4px 6px;
+  }
+
+  .scoreRaw {
+    font-size: 1rem;
+  }
+
+  .hero {
+    padding: 12px;
+  }
+
+  .heroErr {
+    font-size: 2rem;
+  }
+
+  .teaser {
+    padding: 18px 12px;
+  }
+
+  .decree {
+    padding: 4px 6px;
+  }
+
+  .delta {
+    font-size: 1.05rem;
+  }
+
+  .reason {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 3;
+  }
+
+  /* blood stage */
+  .stage {
+    padding: 14px 12px;
+    gap: 12px;
+  }
+
+  .stageTitle {
+    font-size: 1.35rem;
+    letter-spacing: 0.14em;
+  }
+
+  .stageSub {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  .stageGrid {
+    flex: none;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .standoff {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+
+  .soSeats,
+  .soSeats3 {
+    column-gap: 6px;
+  }
+
+  .seatName {
+    font-size: 0.95rem;
+  }
+
+  .card {
+    width: clamp(64px, 24vw, 110px);
+  }
+
+  .soSeats3 .card {
+    width: clamp(54px, 18vw, 90px);
+  }
+
+  .vs {
+    font-size: 1rem;
+  }
+
+  /* overlays */
+  .veil {
+    padding: 24px 18px;
+  }
+
+  .ovTitle {
+    white-space: normal;
+    font-size: 1.9rem;
+    letter-spacing: 0.1em;
+  }
+
+  .ovPoints {
+    font-size: 1.5rem;
+  }
+
+  .ovReason {
+    font-size: 1rem;
+    max-width: 90vw;
+  }
+
+  .banner {
+    top: max(10px, env(safe-area-inset-top));
+    max-width: calc(100vw - 20px);
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .bannerEvent {
+    font-size: 0.85rem;
+  }
+
+  .bannerMsg {
+    font-size: 0.8rem;
+  }
+
+  .revealHead {
+    font-size: 2.2rem;
+    letter-spacing: 0.12em;
+  }
+
+  .revealLine {
+    font-size: 1rem;
+  }
+
+  /* idle: titles wrap, sin sits under the event name */
+  .idle {
+    min-height: calc(100dvh - 120px);
+    gap: 14px;
+    padding: 24px 8px;
+  }
+
+  .idleTitle {
+    font-size: 1.9rem;
+    letter-spacing: 0.16em;
+  }
+
+  .idleSub {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+
+  .idleEvents {
+    gap: 10px;
+  }
+
+  .idleEvent {
+    grid-template-columns: 3ch minmax(0, 1fr);
+    column-gap: 12px;
+  }
+
+  .idleNum,
+  .idleName {
+    font-size: 1rem;
+  }
+
+  .idleName {
+    white-space: normal;
+  }
+
+  .idleSin {
+    grid-column: 2;
+    font-size: 0.75rem;
   }
 }
