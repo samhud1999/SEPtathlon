@@ -135,13 +135,9 @@ function Row({
         className={`${styles.cell} ${styles.colWide}${liveEventId === 7 ? ` ${styles.cellLive}` : ""}`}
       >
         {numCell(
-          "blood",
-          row.bloodTotal === 0 ? "0" : fmtSigned(row.bloodTotal),
-          row.bloodTotal === 0
-            ? ` ${styles.cellDim}`
-            : row.bloodTotal > 0
-              ? ` ${styles.pos}`
-              : ` ${styles.neg}`,
+          "dance",
+          fmtPts(row.bloodTotal),
+          row.bloodTotal === 0 ? ` ${styles.cellDim}` : ` ${styles.pos}`,
         )}
       </div>
 
@@ -203,7 +199,7 @@ export default function Leaderboard({
           className={`${styles.evHead} ${styles.colWide}${payload.liveEventId === 7 ? ` ${styles.evHeadLive}` : ""}`}
         >
           <span className={styles.evNum}>E7</span>
-          <span className={styles.evSin}>{eventById.get(7)?.sin ?? "Blood"}</span>
+          <span className={styles.evSin}>Dance</span>
         </div>
         <div className={`${styles.evHead} ${styles.colWide}`}>
           <span className={styles.evNum}>⚡</span>

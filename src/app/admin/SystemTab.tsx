@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { TvMode } from "@/lib/types";
+import { TV_MODE_LABEL } from "@/lib/dance";
 import { fmtDayTime } from "@/lib/format";
 import styles from "./admin.module.css";
 import { fmtBytes, useAdmin, type SnapshotMeta, type SnapshotsRes } from "./shared";
@@ -16,7 +17,7 @@ import { ArmButton, Sheet } from "./ui";
 const TV_BUTTONS: ReadonlyArray<{ mode: TvMode; icon: string; label: string }> = [
   { mode: "LEADERBOARD", icon: "🏆", label: "LEADERBOARD" },
   { mode: "LIVE_EVENT", icon: "🎯", label: "LIVE EVENT" },
-  { mode: "BLOOD_STAGE", icon: "🩸", label: "BLOOD STAGE" },
+  { mode: "BLOOD_STAGE", icon: "💃", label: "DANCE STAGE" },
 ];
 
 export default function SystemTab() {
@@ -101,7 +102,7 @@ export default function SystemTab() {
 
   return (
     <div className={styles.stack}>
-      <h2 className={styles.sectionTitle}>TV remote — current: {state.tvMode.replace("_", " ")}</h2>
+      <h2 className={styles.sectionTitle}>TV remote — current: {TV_MODE_LABEL[state.tvMode]}</h2>
       <div className={styles.tvBtns}>
         {TV_BUTTONS.map((b) => (
           <button

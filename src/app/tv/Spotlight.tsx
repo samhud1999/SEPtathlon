@@ -2,7 +2,8 @@
 
 import type { EventInfo, EventResultRow, StatePayload } from "@/lib/types";
 import { CURSE_LEVELS, DEFAULT_LIVES } from "@/lib/constants";
-import { fmtErrPct, fmtPts, fmtSigned, ordinal, rankLabel } from "@/lib/format";
+import { duoScore } from "@/lib/dance";
+import { fmtErrPct, fmtPts, ordinal, rankLabel } from "@/lib/format";
 import { nextEvent } from "@/lib/events";
 import styles from "./tv.module.css";
 
@@ -210,48 +211,37 @@ function FruitSplitSpot({
   );
 }
 
-function BloodPreviewSpot({ payload }: { payload: StatePayload }) {
-  const matchups = payload.blood.matchups;
-  if (matchups.length === 0) {
-    return <div className={styles.spotEmpty}>The pairing ritual has not yet begun…</div>;
+function DanceSpot({ payload }: { payload: StatePayload }) {
+  const duos = [...payload.blood.matchups].sort((a, b) => a.id - b.id);
+  if (duos.length === 0) {
+    return <div className={styles.spotEmpty}>The duos have not been drawn…</div>;
   }
-  const round = Math.max(...matchups.map((m) => m.roundNumber));
-  const current = matchups.filter((m) => m.roundNumber === round).sort((a, b) => a.id - b.id);
 
   return (
     <>
       <div className={styles.sectionLabel}>
-        <span>Round {round} standoffs</span>
-        <span className={styles.countTag}>{current.length}</span>
+        <span>Duos</span>
+        <span className={styles.countTag}>{duos.length}</span>
       </div>
       <div className={styles.prevList}>
-        {current.map((m) => (
-          <div key={m.id} className={styles.prevMatch}>
-            {m.players.map((seat, i) => (
-              <span key={seat.playerId} className={styles.prevSeat}>
-                {i > 0 && <span className={styles.prevVs}>vs</span>}
-                <span className={styles.prevName}>{seat.name}</span>
-                {m.isRevealed && seat.card !== null ? (
-                  <span
-                    className={`${styles.seatChip} ${
-                      seat.card === "PURE" ? styles.seatChipPure : styles.seatChipBlood
-                    }`}
-                  >
-                    {seat.card} {fmtSigned(seat.delta)}
-                  </span>
-                ) : (
-                  <span
-                    className={`${styles.seatChip} ${
-                      seat.cardSet ? styles.seatChipLocked : styles.seatChipAwaiting
-                    }`}
-                  >
-                    {seat.cardSet ? "LOCKED" : "AWAITING"}
-                  </span>
-                )}
-              </span>
-            ))}
-          </div>
-        ))}
+        {duos.map((m) => {
+          const score = duoScore(m);
+          return (
+            <div key={m.id} className={styles.prevMatch}>
+              {m.players.map((seat, i) => (
+                <span key={seat.playerId} className={styles.prevSeat}>
+                  {i > 0 && <span className={styles.prevVs}>&amp;</span>}
+                  <span className={styles.prevName}>{seat.name}</span>
+                </span>
+              ))}
+              {score === null ? (
+                <span className={`${styles.seatChip} ${styles.seatChipAwaiting}`}>AWAITING</span>
+              ) : (
+                <span className={`${styles.seatChip} ${styles.seatChipLocked}`}>{fmtPts(score)} / 10</span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </>
   );
@@ -329,7 +319,7 @@ export default function Spotlight({
             {live.scoringType === "FRUIT_SPLIT" && (
               <FruitSplitSpot payload={payload} event={live} />
             )}
-            {live.scoringType === "DANCE_OFF" && <BloodPreviewSpot payload={payload} />}
+            {live.scoringType === "DANCE_OFF" && <DanceSpot payload={payload} />}
           </div>
         </>
       )}

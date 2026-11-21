@@ -7,7 +7,7 @@ import Header from "./Header";
 import Leaderboard, { type FlashMap } from "./Leaderboard";
 import Spotlight from "./Spotlight";
 import JudgmentFeed from "./JudgmentFeed";
-import BloodStage from "./BloodStage";
+import DanceStage from "./DanceStage";
 import Overlays from "./Overlays";
 import IdleScreen from "./IdleScreen";
 
@@ -36,7 +36,7 @@ function diffBoards(prev: StatePayload | null, next: StatePayload): FlashMap {
       if (a !== b) cells.set(`e${key}`, (b ?? 0) >= (a ?? 0) ? 1 : -1);
     }
     if (old.bloodTotal !== row.bloodTotal) {
-      cells.set("blood", row.bloodTotal > old.bloodTotal ? 1 : -1);
+      cells.set("dance", row.bloodTotal > old.bloodTotal ? 1 : -1);
     }
     if (old.decreeTotal !== row.decreeTotal) {
       cells.set("decree", row.decreeTotal > old.decreeTotal ? 1 : -1);
@@ -64,7 +64,6 @@ export default function TvDashboard({ endpoint }: { endpoint: string }) {
   const [overlay, setOverlay] = useState<Broadcast | null>(null);
   const [wakeHeld, setWakeHeld] = useState(false);
   const [showHint, setShowHint] = useState(true);
-  const [skewMs, setSkewMs] = useState(0);
 
   const versionRef = useRef<number | null>(null);
   const failsRef = useRef(0);
@@ -133,8 +132,6 @@ export default function TvDashboard({ endpoint }: { endpoint: string }) {
         // Skip re-render entirely when the version has not moved.
         if (versionRef.current !== payload.version) {
           versionRef.current = payload.version;
-          const serverMs = Date.parse(payload.serverTime);
-          if (!Number.isNaN(serverMs)) setSkewMs(serverMs - Date.now());
           setView((prev) => ({
             payload,
             flash: diffBoards(prev?.payload ?? null, payload),
@@ -264,7 +261,7 @@ export default function TvDashboard({ endpoint }: { endpoint: string }) {
       <Header payload={payload} wakeHeld={wakeHeld} showHint={showHint} />
       <main className={mainClass}>
         {payload.tvMode === "BLOOD_STAGE" ? (
-          <BloodStage payload={payload} skewMs={skewMs} />
+          <DanceStage payload={payload} />
         ) : (
           <>
             <Leaderboard payload={payload} flash={flash} />
