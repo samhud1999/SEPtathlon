@@ -13,8 +13,9 @@ import GuidedRawHigh from "./GuidedRawHigh";
 import GuidedFruit from "./GuidedFruit";
 import GuidedDance from "./GuidedDance";
 import GodModeTable from "./GodModeTable";
+import Placements from "./Placements";
 
-type Mode = "guided" | "god";
+type Mode = "guided" | "placements" | "god";
 
 const STATUS_LABEL: Record<EventStatus, string> = {
   UPCOMING: "Upcoming",
@@ -69,6 +70,7 @@ export default function EventsTab() {
           ariaLabel="Entry mode"
           options={[
             { value: "guided", label: "Guided" },
+            { value: "placements", label: "Placements" },
             { value: "god", label: "God-mode" },
           ]}
           value={mode}
@@ -78,6 +80,8 @@ export default function EventsTab() {
 
       {isDance ? (
         <GuidedDance />
+      ) : mode === "placements" ? (
+        <Placements key={event.id} event={event} />
       ) : mode === "god" ? (
         <GodModeTable key={event.id} event={event} />
       ) : event.scoringType === "ELIMINATION" ? (
