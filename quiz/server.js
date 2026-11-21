@@ -13,6 +13,7 @@ const path = require("node:path");
 const { WebSocketServer } = require("ws");
 const QRCode = require("qrcode");
 const { Game } = require("./game");
+const { attachVote } = require("./vote-server");
 
 const PORT = Number(process.env.PORT) || 8080;
 const HOST_PIN = process.env.QUIZ_HOST_PIN || "1234";
@@ -27,6 +28,8 @@ const FILES = {
   "/": ["play.html", "text/html"],
   "/host": ["host.html", "text/html"],
   "/control": ["control.html", "text/html"],
+  "/vote": ["vote.html", "text/html"],
+  "/vote/host": ["vote-host.html", "text/html"],
   "/style.css": ["style.css", "text/css"],
   "/client.js": ["client.js", "text/javascript"],
 };
@@ -54,7 +57,21 @@ function send(res, status, type, body) {
 
 // ---------------------------------------------------------------- sockets
 
-const wss = new WebSocketServer({ server, path: "/ws", maxPayload: 4096 });
+// Two socket endpoints on one port: the quiz on /ws, the team vote on /vote/ws.
+const wss = new WebSocketServer({ noServer: true, maxPayload: 4096 });
+const vss = new WebSocketServer({ noServer: true, maxPayload: 4096 });
+attachVote(vss, {
+  hostPin: HOST_PIN,
+  // Pre-loaded for tonight; the host screen can change them.
+  title: "Dance on the Creek",
+  options: ["Sarah & Sol", "Olivia & Dan", "Matilda & Kajsa", "Cass & Mackenzie", "Hugo & Chris", "Nineh & Jake"],
+});
+server.on("upgrade", (req, socket, head) => {
+  const { pathname } = new URL(req.url, "http://x");
+  const target = pathname === "/ws" ? wss : pathname === "/vote/ws" ? vss : null;
+  if (!target) return socket.destroy();
+  target.handleUpgrade(req, socket, head, (ws) => target.emit("connection", ws, req));
+});
 const clients = new Set(); // { ws, role: 'host'|'player'|null, id }
 
 wss.on("connection", (ws) => {
@@ -189,5 +206,5 @@ function validate(qs) {
 }
 
 server.listen(PORT, () => {
-  console.log(`Quiz on :${PORT} — ${questions.length} questions. Host screen: /host (PIN ${HOST_PIN === "1234" ? "1234 — set QUIZ_HOST_PIN" : "set"})`);
+  console.log(`Quiz on :${PORT} — ${questions.length} questions. Host screen: /host, vote: /vote/host (PIN ${HOST_PIN === "1234" ? "1234 — set QUIZ_HOST_PIN" : "set"})`);
 });

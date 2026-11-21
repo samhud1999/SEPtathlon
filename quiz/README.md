@@ -57,3 +57,13 @@ npm test
 5. Optional: set the **Healthcheck Path** to `/healthz`.
 
 It needs no database.
+
+## Team vote (`/vote`)
+
+A one-question vote for everyone's phones, run from the same service.
+
+- **Voters:** `https://<your-quiz-domain>/vote`, type a name, wait. A refreshed phone keeps its spot.
+- **Host:** `https://<your-quiz-domain>/vote/host` with the quiz PIN. Shows the QR code, the roster, the option fields (pre-loaded with the six Dance on the Creek duos; edit and **Save options**), and a live tally with who voted for what.
+- **Weights:** everyone counts 1. Registering as **Sam** counts 2 automatically; tap ×1/×2 next to any name to change it.
+- **Flow:** **Open voting** → everyone taps one option (they can change it until you close) → **Close & show results** puts the weighted result on every phone. **Reopen voting** lets people change, **New vote** clears the ballots and keeps the people and options, **Reset** wipes everyone.
+- Like the quiz, the vote lives in memory: a redeploy resets it.

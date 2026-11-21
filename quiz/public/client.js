@@ -1,7 +1,7 @@
 "use strict";
 /* Shared by host and player pages: socket with auto-reconnect, countdown, helpers. */
 
-function connect({ onOpen, onMessage, onStatus }) {
+function connect({ onOpen, onMessage, onStatus, path = "/ws" }) {
   let ws;
   let retry = 0;
   const api = {
@@ -11,7 +11,7 @@ function connect({ onOpen, onMessage, onStatus }) {
   };
   function open() {
     const proto = location.protocol === "https:" ? "wss" : "ws";
-    ws = new WebSocket(`${proto}://${location.host}/ws`);
+    ws = new WebSocket(`${proto}://${location.host}${path}`);
     ws.onopen = () => {
       retry = 0;
       onStatus && onStatus(true);
