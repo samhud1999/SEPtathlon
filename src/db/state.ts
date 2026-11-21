@@ -7,7 +7,6 @@ import { asc, desc, eq } from "drizzle-orm";
 import { BROADCASTS_IN_STATE, DECREES_IN_STATE } from "@/lib/constants";
 import { rankByTotal } from "@/lib/scoring";
 import type {
-  BloodCard,
   BloodMatchupPublic,
   Broadcast,
   EventResultRow,
@@ -39,18 +38,9 @@ export async function getStateVersion(): Promise<number> {
 
 type MatchupRow = typeof bloodMatchups.$inferSelect;
 
-export function toMatchupShape(
-  m: MatchupRow,
-  nameOf: (id: number) => string,
-  revealCards: boolean,
-): BloodMatchupPublic {
-  const seats: Array<{ playerId: number; card: string | null }> = [
-    { playerId: m.playerAId, card: m.cardA },
-    { playerId: m.playerBId, card: m.cardB },
-  ];
-  if (m.matchupType === "3WAY" && m.playerCId != null) {
-    seats.push({ playerId: m.playerCId, card: m.cardC });
-  }
+export function toMatchupShape(m: MatchupRow, nameOf: (id: number) => string): BloodMatchupPublic {
+  const seatIds = [m.playerAId, m.playerBId];
+  if (m.matchupType === "3WAY" && m.playerCId != null) seatIds.push(m.playerCId);
   const deltas = [m.deltaA, m.deltaB, m.deltaC];
   return {
     id: m.id,
@@ -59,11 +49,9 @@ export function toMatchupShape(
     isRevealed: m.isRevealed,
     createdAt: m.createdAt.toISOString(),
     updatedAt: m.updatedAt.toISOString(),
-    players: seats.map((s, i) => ({
-      playerId: s.playerId,
-      name: nameOf(s.playerId),
-      cardSet: s.card != null,
-      card: revealCards || m.isRevealed ? ((s.card as BloodCard | null) ?? null) : null,
+    players: seatIds.map((playerId, i) => ({
+      playerId,
+      name: nameOf(playerId),
       delta: deltas[i] ?? 0,
     })),
   };
@@ -167,7 +155,7 @@ export async function getStatePayload(): Promise<StatePayload> {
     })),
     leaderboard,
     eventResults: eventResultsByEvent,
-    blood: { matchups: allMatchups.map((m) => toMatchupShape(m, nameOf, false)) },
+    blood: { matchups: allMatchups.map((m) => toMatchupShape(m, nameOf)) },
     decrees: recentDecrees.map((d) => ({
       id: d.id,
       playerId: d.playerId,

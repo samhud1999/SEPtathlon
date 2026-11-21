@@ -22,7 +22,7 @@
     { "id": 7, "name": "Macca", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
     { "id": 8, "name": "Johnno", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
     { "id": 9, "name": "Robbo", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
-    { "id": 10, "name": "Gazza", "epithet": "The Betrayed", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "id": 10, "name": "Gazza", "epithet": "Twinkle Toes", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
     { "id": 11, "name": "Smithy", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
     { "id": 12, "name": "Deano", "epithet": "Tribute of the Creek", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 },
     { "id": 13, "name": "Tommo", "epithet": "Keeper of the Esky", "isActive": true, "jokerEventId": null, "rockCurseLevel": 0 }
@@ -31,10 +31,10 @@
     { "playerId": 2, "name": "Chooka", "epithet": "Sovereign-in-Waiting", "rank": 1, "trend": 1, "total": 55, "eventPoints": { "1": 11, "2": 32, "3": 12 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": 2, "rockCurseLevel": 0 },
     { "playerId": 1, "name": "Davo", "epithet": "The Balcony Lurker", "rank": 2, "trend": -1, "total": 54, "eventPoints": { "1": 16, "2": 20, "3": 16 }, "bloodTotal": 5, "decreeTotal": -3, "jokerEventId": null, "rockCurseLevel": 2 },
     { "playerId": 4, "name": "Nugget", "epithet": "Tribute of the Creek", "rank": 3, "trend": 2, "total": 41, "eventPoints": { "1": 8, "2": 13, "3": 20 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
-    { "playerId": 6, "name": "Bluey", "epithet": "Tribute of the Creek", "rank": 4, "trend": 0, "total": 32, "eventPoints": { "1": 10, "2": 11, "3": 11 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
-    { "playerId": 3, "name": "Spud", "epithet": "Saint of the Skillet", "rank": 4, "trend": -1, "total": 32, "eventPoints": { "1": 14, "2": 13 }, "bloodTotal": 0, "decreeTotal": 5, "jokerEventId": null, "rockCurseLevel": 0 },
-    { "playerId": 8, "name": "Johnno", "epithet": "Tribute of the Creek", "rank": 6, "trend": 1, "total": 31, "eventPoints": { "1": 9, "2": 8, "5": 14 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
-    { "playerId": 10, "name": "Gazza", "epithet": "The Betrayed", "rank": 7, "trend": -1, "total": 30, "eventPoints": { "1": 6, "2": 7, "5": 20 }, "bloodTotal": -3, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 10, "name": "Gazza", "epithet": "Twinkle Toes", "rank": 4, "trend": 3, "total": 38, "eventPoints": { "1": 6, "2": 7, "5": 20 }, "bloodTotal": 5, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 6, "name": "Bluey", "epithet": "Tribute of the Creek", "rank": 5, "trend": -1, "total": 32, "eventPoints": { "1": 10, "2": 11, "3": 11 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 3, "name": "Spud", "epithet": "Saint of the Skillet", "rank": 5, "trend": -2, "total": 32, "eventPoints": { "1": 14, "2": 13 }, "bloodTotal": 0, "decreeTotal": 5, "jokerEventId": null, "rockCurseLevel": 0 },
+    { "playerId": 8, "name": "Johnno", "epithet": "Tribute of the Creek", "rank": 7, "trend": 0, "total": 31, "eventPoints": { "1": 9, "2": 8, "5": 14 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
     { "playerId": 5, "name": "Wazza", "epithet": "Last Fan Standing", "rank": 8, "trend": 0, "total": 29, "eventPoints": { "1": 20, "2": 9 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 1 },
     { "playerId": 12, "name": "Deano", "epithet": "Tribute of the Creek", "rank": 9, "trend": 1, "total": 25, "eventPoints": { "1": 4, "2": 5, "5": 16 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
     { "playerId": 11, "name": "Smithy", "epithet": "Tribute of the Creek", "rank": 10, "trend": -1, "total": 23, "eventPoints": { "1": 5, "2": 4, "3": 14 }, "bloodTotal": 0, "decreeTotal": 0, "jokerEventId": null, "rockCurseLevel": 0 },
@@ -94,16 +94,16 @@
         "id": 1, "roundNumber": 1, "matchupType": "1V1", "isRevealed": true,
         "createdAt": "2026-11-14T06:10:00.000Z", "updatedAt": "2026-11-14T06:14:30.000Z",
         "players": [
-          { "playerId": 1, "name": "Davo", "cardSet": true, "card": "BLOOD", "delta": 5 },
-          { "playerId": 10, "name": "Gazza", "cardSet": true, "card": "PURE", "delta": -3 }
+          { "playerId": 1, "name": "Davo", "delta": 5 },
+          { "playerId": 10, "name": "Gazza", "delta": 5 }
         ]
       },
       {
         "id": 2, "roundNumber": 1, "matchupType": "1V1", "isRevealed": false,
         "createdAt": "2026-11-14T06:10:00.000Z", "updatedAt": "2026-11-14T06:16:05.000Z",
         "players": [
-          { "playerId": 3, "name": "Spud", "cardSet": true, "card": null, "delta": 0 },
-          { "playerId": 5, "name": "Wazza", "cardSet": false, "card": null, "delta": 0 }
+          { "playerId": 3, "name": "Spud", "delta": 0 },
+          { "playerId": 5, "name": "Wazza", "delta": 0 }
         ]
       }
     ]

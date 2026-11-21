@@ -63,22 +63,20 @@ export interface LeaderboardRow {
   rockCurseLevel: number;
 }
 
+/** One member of a dance duo/trio; `delta` is the duo's score once scored. */
 export interface BloodSeat {
   playerId: number;
   name: string;
-  /** a pick is locked in (safe to show as "LOCKED" on TV) */
-  cardSet: boolean;
-  /** ALWAYS null in the public payload until the matchup is revealed */
-  card: BloodCard | null;
   delta: number;
 }
 
+/** A dance duo (or trio) — stored in blood_matchups, served under `blood`. */
 export interface BloodMatchupPublic {
   id: number;
   roundNumber: number;
   matchupType: "1V1" | "3WAY";
+  /** true once the duo has a score (its deltas count toward the Dance total) */
   isRevealed: boolean;
-  /** drives the TV's 90-second standoff countdown */
   createdAt: string;
   updatedAt: string;
   players: BloodSeat[];

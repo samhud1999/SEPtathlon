@@ -408,7 +408,7 @@ export async function listBloodMatchups(): Promise<BloodMatchupPublic[]> {
       p.name,
     ]),
   );
-  return rows.map((m) => toMatchupShape(m, (id) => names.get(id) ?? `Tribute #${id}`, true));
+  return rows.map((m) => toMatchupShape(m, (id) => names.get(id) ?? `Tribute #${id}`));
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -519,7 +519,7 @@ export async function patchBloodMatchup(
       const seatIds = [m.playerAId, m.playerBId];
       if (m.playerCId != null) seatIds.push(m.playerCId);
       const names = await requirePlayers(tx, seatIds);
-      const duo = toMatchupShape(updated, (pid) => names.get(pid) ?? `Tribute #${pid}`, true);
+      const duo = toMatchupShape(updated, (pid) => names.get(pid) ?? `Tribute #${pid}`);
       const [dance] = await tx.select({ name: events.name }).from(events).where(eq(events.id, 7));
       await addBroadcast(tx, "EVENT_SCORE", {
         eventId: 7,

@@ -57,7 +57,7 @@ async function shot(page, name, waitMs) {
   await shot(tvPage, "tv-leaderboard.png", 4000);
 
   await api("/api/tv-mode", { mode: "BLOOD_STAGE" });
-  await shot(tvPage, "tv-blood-stage.png", 3500);
+  await shot(tvPage, "tv-dance-stage.png", 3500);
   await api("/api/tv-mode", { mode: "LIVE_EVENT" });
   await shot(tvPage, "tv-live-event.png", 3500);
   await api("/api/tv-mode", { mode: "LEADERBOARD" });
@@ -110,7 +110,7 @@ async function shot(page, name, waitMs) {
     await adminPage.locator("select").first().selectOption("1");
     await shot(adminPage, "admin-events-elimination.png", 1200);
     await adminPage.locator("select").first().selectOption("7");
-    await shot(adminPage, "admin-events-blood.png", 1500);
+    await shot(adminPage, "admin-events-dance.png", 1500);
   } catch (err) {
     errors.push(`[admin] event switching failed: ${err.message}`);
   }

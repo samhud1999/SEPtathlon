@@ -3,7 +3,7 @@ import { duoNames, duoScore } from "@/lib/dance";
 import type { BloodMatchupPublic } from "@/lib/types";
 
 const base = { id: 1, roundNumber: 1, matchupType: "1V1" as const, createdAt: "", updatedAt: "" };
-const seat = (playerId: number, name: string, delta: number) => ({ playerId, name, delta, cardSet: false, card: null });
+const seat = (playerId: number, name: string, delta: number) => ({ playerId, name, delta });
 
 describe("dance helpers", () => {
   it("an unscored duo has no score and a scored one reads seat A's delta", () => {

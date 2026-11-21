@@ -94,7 +94,7 @@ describe("boot + seed", () => {
     const fixture = JSON.parse(
       readFileSync(join(process.cwd(), "fixtures", "sample-state.json"), "utf8"),
     ) as StatePayload;
-    const ids = await addPlayers(["Davo"]);
+    const ids = await addPlayers(["Davo", "Chooka"]);
     const payload = await upsertScores(2, [{ playerId: ids.get("Davo") as number, rawScore: 95 }]);
 
     expect(Object.keys(payload).sort()).toEqual(Object.keys(fixture).sort());
@@ -106,6 +106,15 @@ describe("boot + seed", () => {
     expect(Object.keys(payloadResult ?? {}).sort()).toEqual(Object.keys(fixtureResult ?? {}).sort());
     expect(Object.keys(payload.events[0] ?? {}).sort()).toEqual(Object.keys(fixture.events[0] ?? {}).sort());
     expect(Object.keys(payload.players[0] ?? {}).sort()).toEqual(Object.keys(fixture.players[0] ?? {}).sort());
+
+    const danced = await createBloodMatchup({
+      roundNumber: 1,
+      playerIds: [ids.get("Davo") as number, ids.get("Chooka") as number],
+    });
+    const payloadSeat = danced.blood.matchups[0]?.players[0];
+    const fixtureSeat = fixture.blood.matchups[0]?.players[0];
+    expect(Object.keys(payloadSeat ?? {}).sort()).toEqual(["delta", "name", "playerId"]);
+    expect(Object.keys(fixtureSeat ?? {}).sort()).toEqual(["delta", "name", "playerId"]);
   });
 });
 

@@ -11,7 +11,7 @@ import { Seg } from "./ui";
 import GuidedElimination from "./GuidedElimination";
 import GuidedRawHigh from "./GuidedRawHigh";
 import GuidedFruit from "./GuidedFruit";
-import GuidedBlood from "./GuidedBlood";
+import GuidedDance from "./GuidedDance";
 import GodModeTable from "./GodModeTable";
 
 type Mode = "guided" | "god";
@@ -77,7 +77,7 @@ export default function EventsTab() {
       ) : null}
 
       {isDance ? (
-        <GuidedBlood />
+        <GuidedDance />
       ) : mode === "god" ? (
         <GodModeTable key={event.id} event={event} />
       ) : event.scoringType === "ELIMINATION" ? (

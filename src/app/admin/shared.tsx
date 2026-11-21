@@ -66,7 +66,7 @@ export interface DecreesRes {
   decrees: DecreeRow[];
 }
 
-/** Same seats shape as StatePayload's matchups, but with REAL card values. */
+/** Same shape as `StatePayload.blood.matchups`. */
 export interface MatchupsRes {
   matchups: BloodMatchupPublic[];
 }

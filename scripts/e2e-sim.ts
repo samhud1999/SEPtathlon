@@ -282,8 +282,8 @@ async function main(): Promise<void> {
   payload = state(res.json);
   const hidden = payload.blood.matchups.find((m) => m.id === m1?.id);
   ok(
-    hidden?.players.every((p) => p.card === null) === true && hidden?.players[0]?.cardSet === true,
-    "unrevealed cards hidden from the public state",
+    hidden?.players.every((p) => typeof p.delta === "number") === true,
+    "duo seats expose a delta in the public state",
   );
   res = await call(`/api/blood/matchups/${m1?.id}`, { method: "PATCH", body: { reveal: true } });
   payload = state(res.json);

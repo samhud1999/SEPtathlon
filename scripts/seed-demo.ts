@@ -43,7 +43,7 @@ async function main(): Promise<void> {
     ["Macca"],
     ["Johnno"],
     ["Robbo"],
-    ["Gazza", "The Betrayed"],
+    ["Gazza", "Twinkle Toes"],
     ["Smithy"],
     ["Deano"],
     ["Tommo", "Keeper of the Esky"],
@@ -140,19 +140,14 @@ async function main(): Promise<void> {
   });
   console.log("Decrees cast (one voided)");
 
-  // Blood round 1: one revealed betrayal, one pending standoff.
+  // Dance on the Creek: one scored duo, one still on the floor.
   payload = (await call("/api/blood/matchups", {
     roundNumber: 1, playerIds: [pid("Davo"), pid("Gazza")],
   })) as StatePayload;
-  const m1 = payload.blood.matchups.at(-1);
-  await call(`/api/blood/matchups/${m1?.id}`, { cardA: "BLOOD", cardB: "PURE" }, "PATCH");
-  await call(`/api/blood/matchups/${m1?.id}`, { reveal: true }, "PATCH");
-  payload = (await call("/api/blood/matchups", {
-    roundNumber: 1, playerIds: [pid("Spud"), pid("Wazza")],
-  })) as StatePayload;
-  const m2 = payload.blood.matchups.at(-1);
-  await call(`/api/blood/matchups/${m2?.id}`, { cardA: "PURE" }, "PATCH");
-  console.log("Blood round 1: Davo betrays Gazza; Spud vs Wazza pending");
+  const duo1 = payload.blood.matchups.at(-1);
+  await call(`/api/blood/matchups/${duo1?.id}`, { score: 5 }, "PATCH");
+  await call("/api/blood/matchups", { roundNumber: 1, playerIds: [pid("Spud"), pid("Wazza")] });
+  console.log("Dance: Davo & Gazza scored 5/10; Spud & Wazza await the judges");
 
   await call("/api/tv-mode", { mode: "LEADERBOARD" });
   const finalState = (await call("/api/state")) as StatePayload;
