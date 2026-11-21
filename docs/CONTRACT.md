@@ -64,11 +64,11 @@ Every route handler: `export const dynamic = 'force-dynamic'`. Mutators return t
 | POST `/api/decrees` | admin | `DecreeCreateBody {playerIds: number[] (min 1), pointsDelta (≠0), sinTag, reason}` → one decree row per player + ONE `DECREE` broadcast naming all players. |
 | GET `/api/decrees` | admin | → `{decrees: DecreeRow[]}` full history, newest first. |
 | PATCH `/api/decrees/[id]` | admin | `DecreePatchBody {pointsDelta?, sinTag?, reason?, isVoided?, playerId?}`. |
-| GET `/api/blood/matchups` | admin | → `{matchups: BloodMatchupPublic[]}` — the SAME seats shape as the public state, but with real `card` values on unrevealed matchups (`cardSet` still set). |
-| POST `/api/blood/generate` | admin | `BloodGenerateBody {roundNumber 1–3}` → wipe that round's UNrevealed matchups, randomly pair active players not already in a revealed matchup of the round; odd leftover → one 3WAY; <2 pairable → 400. |
-| POST `/api/blood/matchups` | admin | `BloodCreateBody {roundNumber, playerIds: [a,b] or [a,b,c]}` manual matchup. |
-| PATCH `/api/blood/matchups/[id]` | admin | `BloodPatchBody {cardA?, cardB?, cardC?, reveal?, unreveal?, deltaA?, deltaB?, deltaC?}`. `reveal:true` requires all seats carded (else 409) → compute deltas via `computeBloodDeltas` (round 3 = ×2), set `isRevealed`, broadcast `BLOOD_REVEAL`. Manual delta fields apply only to revealed matchups (post-reveal amendment). `unreveal:true` flips it back (deltas kept, totals exclude them). |
-| DELETE `/api/blood/matchups/[id]` | admin | removes it (revealed or not). |
+| GET `/api/blood/matchups` | admin | → `{matchups: BloodMatchupPublic[]}` — the same duo shape as the public state (nothing is hidden). |
+| POST `/api/blood/generate` | admin | `BloodGenerateBody {roundNumber 1–3}` → **wipe every duo** (scored or not), then randomly pair all active players as duos; odd leftover → one 3WAY trio; <2 actives → 400. The dance-off is a single draw (UI always sends round 1). |
+| POST `/api/blood/matchups` | admin | `BloodCreateBody {roundNumber, playerIds: [a,b] or [a,b,c]}` manual duo/trio. |
+| PATCH `/api/blood/matchups/[id]` | admin | `BloodPatchBody {score: number \| null}` with `0 ≤ score ≤ 10` (stored at one decimal). A score writes every seat's delta = score and sets `isRevealed` (= scored), so each member banks it once; it broadcasts `EVENT_SCORE {eventId: 7, eventName, message: "A & B — 7.5/10"}`. `score: null` clears (deltas 0, `isRevealed` false, no broadcast). Out of range → 400. |
+| DELETE `/api/blood/matchups/[id]` | admin | removes the duo (scored or not). |
 | POST `/api/tv-mode` | admin | `TvModeBody {mode}` → persists + `TV_MODE` broadcast. |
 | GET `/api/export` | admin | → `ExportShape` with `Content-Disposition: attachment; filename="creekos-export-<ISO>.json"`. |
 | POST `/api/restore` | admin | `RestoreBody {confirm:"RESTORE", dump: ExportShape}` → validate dump FIRST (Zod), snapshot current ("pre-restore"), then wipe+reinsert preserving ids in one tx. Invalid → 400, untouched. |
@@ -102,10 +102,11 @@ Per input row (all upserted in ONE transaction, then event recalc + totals recal
 - `leaderboard` is ACTIVE players only, ordered by rank then name; `rank` uses competition ranking
   (ties share, next skips); `trend` = prevRank − rank (+ = climbed), null when no previous ranking.
 - `eventPoints` maps event id ("1"–"6") → `finalEventPoints`, **only for events where the player
-  has a result row**; render "—" otherwise. Blood lives in `bloodTotal`, decrees in `decreeTotal`.
+  has a result row**; render "—" otherwise. Dance scores live in `bloodTotal` (shown as the
+  "Dance" column), decrees in `decreeTotal`.
 - `eventResults` keyed by event id string; includes rows for ALL events 1–6 (and none for 7).
-- `blood.matchups[].players[].card` is `null` until `isRevealed` (TV must never leak picks);
-  `cardSet` says a pick is locked in. `createdAt` drives the TV's 90 s countdown.
+- `blood.matchups[]` are the dance duos; `players[]` seats are `{playerId, name, delta}` and
+  `delta` is the duo's score once `isRevealed` (= scored), 0 while awaiting.
 - `decrees` = last 20 (incl. voided, flagged); `broadcasts` = last 10, ascending id.
 - Poll contract: clients poll (TV 2.5 s, admin 5 s), skip re-render when `version` unchanged,
   show a reconnect indicator after 2 consecutive failures, and NEVER clear the last good state.
@@ -115,8 +116,7 @@ Per input row (all upserted in ONE transaction, then event recalc + totals recal
 | type | payload | TV reaction |
 | --- | --- | --- |
 | DECREE | `{playerNames[], pointsDelta, sinTag, reason}` | Full-screen 5 s overlay: "⚡ JUDGMENT FROM THE CREEK ⚡ / {+N/−N} POINTS TO {NAMES} / Sin of {sinTag}: {reason}" |
-| EVENT_SCORE | `{eventId, eventName, message}` | Top banner ~4 s |
-| BLOOD_REVEAL | `{matchupId, roundNumber, headline, lines[]}` | Stage flash + headline ("BETRAYAL" / "HONOUR AMONG TRIBUTES" / "MUTUAL DESTRUCTION") |
+| EVENT_SCORE | `{eventId, eventName, message}` | Top banner ~4 s (a dance score arrives as `eventId: 7`, e.g. "Davo & Gazza — 5/10") |
 | TV_MODE | `{mode}` | Switch layout immediately |
 
 TV tracks the max broadcast id it has handled (start = max in first payload, so no replay on
@@ -139,6 +139,6 @@ reload) and plays newer ones once, queued sequentially.
 
 `fixtures/sample-state.json` is a mid-tournament Saturday: 13 tributes, E1–E2 COMPLETED (E2 has
 the 72/72 tie → 13.0 each and Chooka's joker 16→32), E3 LIVE partial, E5 three weigh-ins, one
-revealed blood matchup (+5/−3), four decrees (one voided). Leaderboard totals are hand-verified.
+scored dance duo (Davo & Gazza, 5/10 each), four decrees (one voided). Leaderboard totals are hand-verified.
 UI agents build against it via `/tv?mock=1` / direct import in dev; db agent asserts
 key-compatibility; never edit it.

@@ -180,7 +180,7 @@ async function main(): Promise<void> {
   payload = state(res.json);
   eq(lbRow(payload, pid(2)).eventPoints["2"], 16, "force-moved joker un-doubles E2");
   const badJoker = await call("/api/events/7/joker", { body: { playerId: pid(2), active: true } });
-  eq(badJoker.status, 400, "joker rejected on the blood event");
+  eq(badJoker.status, 400, "joker rejected on the dance event");
 
   // --- Event 3: partial live scores, joker lands here ------------------------
   console.log("event 3 — live partial");
@@ -253,61 +253,71 @@ async function main(): Promise<void> {
   });
   eq(badBody.status, 400, "negative raw score → 400");
 
-  // --- blood on the creek -----------------------------------------------------
-  console.log("blood on the creek");
+  // --- dance on the creek -----------------------------------------------------
+  console.log("dance on the creek");
   res = await call("/api/blood/generate", { body: { roundNumber: 1 } });
   payload = state(res.json);
   if (soloField) {
-    eq(payload.blood.matchups.length, 6, "13 tributes → 6 matchups");
-    eq(payload.blood.matchups.filter((m) => m.matchupType === "3WAY").length, 1, "exactly one 3-way");
+    eq(payload.blood.matchups.length, 6, "13 tributes → 6 duos");
+    eq(payload.blood.matchups.filter((m) => m.matchupType === "3WAY").length, 1, "exactly one trio");
+    const seated = payload.blood.matchups.flatMap((m) => m.players.map((p) => p.playerId));
+    eq(new Set(seated).size, 13, "every tribute seated once");
   }
-  const generated = payload.blood.matchups[0];
-  const revealEarly = await call(`/api/blood/matchups/${generated?.id}`, {
-    method: "PATCH",
-    body: { reveal: true },
-  });
-  eq(revealEarly.status, 409, "reveal without cards → 409");
+  ok(payload.blood.matchups.every((m) => !m.isRevealed), "fresh duos are unscored");
+  const drawn = payload.blood.matchups[0];
+  const tooHigh = await call(`/api/blood/matchups/${drawn?.id}`, { method: "PATCH", body: { score: 11 } });
+  eq(tooHigh.status, 400, "score above 10 → 400");
 
-  // clear generated matchups so blood totals stay hand-computable
+  // clear the drawn duos so dance totals stay hand-computable
   const adminList = await call("/api/blood/matchups");
-  for (const m of (adminList.json as { matchups: Array<{ id: number; isRevealed: boolean }> }).matchups) {
-    if (!m.isRevealed) await call(`/api/blood/matchups/${m.id}`, { method: "DELETE" });
+  for (const m of (adminList.json as { matchups: Array<{ id: number }> }).matchups) {
+    await call(`/api/blood/matchups/${m.id}`, { method: "DELETE" });
   }
 
   res = await call("/api/blood/matchups", { body: { roundNumber: 1, playerIds: [pid(4), pid(5)] } });
   payload = state(res.json);
-  const m1 = payload.blood.matchups.find((m) => m.players.some((p) => p.playerId === pid(4)));
-  await call(`/api/blood/matchups/${m1?.id}`, { method: "PATCH", body: { cardA: "BLOOD", cardB: "PURE" } });
-  res = await call("/api/state", { auth: false });
+  const duo = payload.blood.matchups.find((m) => m.players.some((p) => p.playerId === pid(4)));
+  res = await call(`/api/blood/matchups/${duo?.id}`, { method: "PATCH", body: { score: 7.5 } });
   payload = state(res.json);
-  const hidden = payload.blood.matchups.find((m) => m.id === m1?.id);
+  const scored = payload.blood.matchups.find((m) => m.id === duo?.id);
   ok(
-    hidden?.players.every((p) => typeof p.delta === "number") === true,
-    "duo seats expose a delta in the public state",
+    scored?.isRevealed === true && scored.players.every((p) => p.delta === 7.5),
+    "duo score visible in the public state",
   );
-  res = await call(`/api/blood/matchups/${m1?.id}`, { method: "PATCH", body: { reveal: true } });
-  payload = state(res.json);
-  eq(lbRow(payload, pid(4)).bloodTotal, 5, "round 1 betrayal pays +5");
-  eq(lbRow(payload, pid(5)).bloodTotal, -3, "round 1 victim pays −3");
+  eq(lbRow(payload, pid(4)).bloodTotal, 7.5, "duo score lands on Sim04");
+  eq(lbRow(payload, pid(5)).bloodTotal, 7.5, "duo score lands on Sim05");
+  const danceBc = payload.broadcasts.filter((b) => b.type === "EVENT_SCORE").at(-1);
+  const dancePayload = danceBc?.payload as { eventId: number; message: string } | undefined;
   ok(
-    payload.broadcasts.some((b) => b.type === "EVENT_SCORE" && (b.payload as { eventId: number }).eventId === 7),
+    dancePayload?.eventId === 7 && dancePayload.message.endsWith("7.5/10"),
     "duo score broadcasts an EVENT_SCORE for event 7",
+    dancePayload,
   );
 
-  res = await call("/api/blood/matchups", { body: { roundNumber: 3, playerIds: [pid(4), pid(5)] } });
+  res = await call("/api/blood/matchups", { body: { roundNumber: 1, playerIds: [pid(4), pid(5), pid(6)] } });
   payload = state(res.json);
-  const m3 = payload.blood.matchups.find((m) => m.roundNumber === 3);
-  await call(`/api/blood/matchups/${m3?.id}`, { method: "PATCH", body: { cardA: "BLOOD", cardB: "PURE" } });
-  res = await call(`/api/blood/matchups/${m3?.id}`, { method: "PATCH", body: { reveal: true } });
+  const trio = payload.blood.matchups.find((m) => m.matchupType === "3WAY");
+  res = await call(`/api/blood/matchups/${trio?.id}`, { method: "PATCH", body: { score: 6 } });
   payload = state(res.json);
-  eq(lbRow(payload, pid(4)).bloodTotal, 15, "round 3 doubles stakes (+5 +10)");
-  eq(lbRow(payload, pid(5)).bloodTotal, -9, "round 3 doubles stakes (−3 −6)");
+  eq(lbRow(payload, pid(4)).bloodTotal, 13.5, "trio score stacks with the duo (Sim04)");
+  eq(lbRow(payload, pid(5)).bloodTotal, 13.5, "trio score stacks with the duo (Sim05)");
+  eq(lbRow(payload, pid(6)).bloodTotal, 6, "trio score lands on all three (Sim06)");
+
+  res = await call(`/api/blood/matchups/${trio?.id}`, { method: "PATCH", body: { score: 4 } });
+  payload = state(res.json);
+  eq(lbRow(payload, pid(4)).bloodTotal, 11.5, "amended score replaces, never stacks (Sim04)");
+  eq(lbRow(payload, pid(6)).bloodTotal, 4, "amended score replaces, never stacks (Sim06)");
+
+  res = await call(`/api/blood/matchups/${duo?.id}`, { method: "PATCH", body: { score: null } });
+  payload = state(res.json);
+  eq(lbRow(payload, pid(4)).bloodTotal, 4, "cleared duo drops from the Dance total (Sim04)");
+  eq(lbRow(payload, pid(5)).bloodTotal, 4, "cleared duo drops from the Dance total (Sim05)");
 
   // --- tv mode ----------------------------------------------------------------
   console.log("tv mode");
   res = await call("/api/tv-mode", { body: { mode: "BLOOD_STAGE" } });
   payload = state(res.json);
-  eq(payload.tvMode, "BLOOD_STAGE", "tv switches to the standoff stage");
+  eq(payload.tvMode, "BLOOD_STAGE", "tv switches to the dance stage");
   res = await call("/api/tv-mode", { body: { mode: "LEADERBOARD" } });
   payload = state(res.json);
   eq(payload.tvMode, "LEADERBOARD", "tv back to the leaderboard");
@@ -324,6 +334,18 @@ async function main(): Promise<void> {
   });
   payload = state(res.json);
   eq(lbRow(payload, pid(13)).eventPoints["6"], 0, "cleared override returns to unranked 0");
+  // placements: a 2-way tie for 1st (both overrides = 1) splits ranks 1–2 → 18 each
+  res = await call("/api/events/6/score", {
+    body: { results: [{ playerId: pid(13), manualRankOverride: 1 }, { playerId: pid(11), manualRankOverride: 1 }] },
+  });
+  payload = state(res.json);
+  eq(lbRow(payload, pid(13)).eventPoints["6"], 18, "placements tie for 1st splits to 18 (Sim13)");
+  eq(lbRow(payload, pid(11)).eventPoints["6"], 18, "placements tie for 1st splits to 18 (Sim11)");
+  res = await call("/api/events/6/score", {
+    body: { results: [{ playerId: pid(13), manualRankOverride: null }, { playerId: pid(11), manualRankOverride: null }] },
+  });
+  payload = state(res.json);
+  eq(lbRow(payload, pid(11)).eventPoints["6"], 0, "cleared placements return to unranked 0");
   res = await call("/api/events/2/score", {
     body: { results: [{ playerId: pid(13), manualPointsOverride: 7.5 }] },
   });
@@ -343,19 +365,21 @@ async function main(): Promise<void> {
   console.log("final hand-computed totals");
   res = await call("/api/state", { auth: false });
   payload = state(res.json);
+  // dance adds +4 to Sim04/05/06 (duo cleared, trio amended to 4)
   const expectTotals: Array<[number, number]> = [
-    [2, 52], [1, 43], [10, 38], [12, 36], [4, 34], [8, 32], [13, 29.5],
-    [11, 19], [6, 18], [7, 18], [9, 18], [3, 15], [5, 9],
+    [2, 52], [1, 43], [10, 38], [12, 36], [8, 32], [13, 29.5], [4, 23],
+    [5, 22], [6, 22], [11, 19], [7, 18], [9, 18], [3, 15],
   ];
   for (const [n, total] of expectTotals) {
     eq(lbRow(payload, pid(n)).total, total, `Sim${String(n).padStart(2, "0")} total = ${total}`);
   }
   if (soloField) {
     eq(lbRow(payload, pid(2)).rank, 1, "Sim02 wears the crown");
-    eq(lbRow(payload, pid(6)).rank, 9, "three-way tie shares rank 9");
-    eq(lbRow(payload, pid(7)).rank, 9, "three-way tie shares rank 9 (2)");
-    eq(lbRow(payload, pid(9)).rank, 9, "three-way tie shares rank 9 (3)");
-    eq(lbRow(payload, pid(3)).rank, 12, "competition ranking skips to 12");
+    eq(lbRow(payload, pid(5)).rank, 8, "two-way tie shares rank 8 (Sim05)");
+    eq(lbRow(payload, pid(6)).rank, 8, "two-way tie shares rank 8 (Sim06)");
+    eq(lbRow(payload, pid(7)).rank, 11, "two-way tie shares rank 11 (Sim07)");
+    eq(lbRow(payload, pid(9)).rank, 11, "two-way tie shares rank 11 (Sim09)");
+    eq(lbRow(payload, pid(3)).rank, 13, "competition ranking skips to 13");
   }
 
   // --- export → mutate → restore ---------------------------------------------

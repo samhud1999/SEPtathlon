@@ -47,28 +47,20 @@ good board through dropouts, with a SIGNAL LOST badge until it reconnects.
 | 4 | Rock Hurl | Wrath | Elimination + curse levels |
 | 5 | 50/50 Fruit Split | Envy | Lowest % off a perfect split |
 | 6 | Grape Bobbing | Gluttony | Highest raw score |
-| 7 | Blood on the Creek | Lust | Standoff matrix (below) |
+| 7 | Dance on the Creek | Lust | Duos dance, scored 0–10; both members bank the score |
 
 Placings pay 20, 16, 14, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1. Ties split the
 covered ranks and round up to the half point, so a two-way tie for 3rd pays 13
 each. Each tribute holds one Mortal Sin Joker that doubles a single event
 (1 through 6). Manual rank and points overrides in god-mode beat everything.
 
-### Blood on the Creek payoff matrix
+### Dance on the Creek
 
-The PRD left the numbers open, so these defaults live in
-`src/lib/constants.ts` and every delta stays editable per matchup after the
-reveal:
-
-| Standoff | Payoff (round 1–2; round 3 doubles) |
-|----------|--------------------------------------|
-| PURE vs PURE | +3 / +3 |
-| BLOOD vs PURE | +5 / −3 |
-| BLOOD vs BLOOD | −2 / −2 |
-| 3-way, no blood | +3 each |
-| 3-way, one blood | +6 blood, −2 each pure |
-| 3-way, two blood | +1 each blood, −4 pure |
-| 3-way, all blood | −3 each |
+Event 7 is a dance-off. The commissioner draws random duos from the active
+tributes (an odd count makes one trio), each duo dances, and the commissioner
+types one score out of 10 (decimals allowed). Both members bank that score in
+the Dance column. Scores can be amended or cleared at any time; redrawing wipes
+the current duos and their scores, and a manual builder covers late arrivals.
 
 ## Commissioner quick reference
 
@@ -76,10 +68,12 @@ reveal:
   reason, cast. Every decree can be edited or voided later; voided ones stay in
   the ledger struck through.
 - **Events** (🏆 tab): guided mode runs the event live (lives, eliminations,
-  score entry with rank preview, weigh-ins, standoffs). God-mode is the
+  score entry with rank preview, weigh-ins, duo draws and dance scores).
+  Placements mode drags tributes into finishing order on the phone, with ties,
+  and saves the result as rank overrides. God-mode is the
   spreadsheet view for recounts: change any raw value, override any rank or
   points, save, and the whole weekend recalculates.
-- Typed score entry updates the board quietly; eliminations, reveals, decrees,
+- Typed score entry updates the board quietly; eliminations, dance scores, decrees,
   and setting an event LIVE or COMPLETED flash banners on the TV.
 - **Roster** (👥 tab): late arrivals and dropouts are fine at any player count.
   Benched tributes keep their history and leave the board.
@@ -104,9 +98,9 @@ All mutating endpoints need the admin cookie (from `POST /api/login`) or an
 | POST | `/api/events/:id/status` | UPCOMING / LIVE / COMPLETED |
 | POST | `/api/events/:id/joker` | Place or clear the 2× joker (409 on conflict, `force` moves it) |
 | GET/POST | `/api/decrees` · PATCH `/api/decrees/:id` | The Dumbledore ledger |
-| GET/POST | `/api/blood/matchups` · PATCH/DELETE `/api/blood/matchups/:id` | Standoffs: cards, reveal, unreveal, delta edits |
-| POST | `/api/blood/generate` | Random pairings for a round (odd count makes one 3-way) |
-| POST | `/api/tv-mode` | LEADERBOARD / LIVE_EVENT / BLOOD_STAGE |
+| GET/POST | `/api/blood/matchups` · PATCH/DELETE `/api/blood/matchups/:id` | Dance duos: forge, score 0–10 (`{score}`; `{score: null}` clears), delete |
+| POST | `/api/blood/generate` | Random duos for every active tribute (odd count makes one trio); wipes existing duos |
+| POST | `/api/tv-mode` | LEADERBOARD / LIVE_EVENT / BLOOD_STAGE (the Dance stage) |
 | GET | `/api/export` · POST `/api/restore` | Timestamped JSON backup and restore |
 | GET/POST | `/api/snapshots` (+ `/:id`, `/:id/restore`) | Snapshot history |
 
