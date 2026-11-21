@@ -105,10 +105,6 @@ export type Broadcast = { id: number; createdAt: string } & (
       payload: { eventId: number; eventName: string; message: string };
     }
   | {
-      type: "BLOOD_REVEAL";
-      payload: { matchupId: number; roundNumber: number; headline: string; lines: string[] };
-    }
-  | {
       type: "TV_MODE";
       payload: { mode: TvMode };
     }

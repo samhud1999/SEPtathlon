@@ -7,7 +7,6 @@ import styles from "./tv.module.css";
 
 type DecreeBroadcast = Extract<Broadcast, { type: "DECREE" }>;
 type ScoreBroadcast = Extract<Broadcast, { type: "EVENT_SCORE" }>;
-type RevealBroadcast = Extract<Broadcast, { type: "BLOOD_REVEAL" }>;
 
 function DecreeOverlay({ broadcast }: { broadcast: DecreeBroadcast }) {
   const { playerNames, pointsDelta, sinTag, reason } = broadcast.payload;
@@ -55,44 +54,6 @@ function ScoreBanner({ broadcast }: { broadcast: ScoreBroadcast }) {
   );
 }
 
-function RevealOverlay({ broadcast }: { broadcast: RevealBroadcast }) {
-  return (
-    <motion.div
-      className={`${styles.veil} ${styles.revealVeil}`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <motion.div
-        className={styles.flashLayer}
-        initial={{ opacity: 0.85 }}
-        animate={{ opacity: 0 }}
-        transition={{ duration: 0.9, ease: "easeOut" }}
-      />
-      <motion.div
-        className={styles.revealBox}
-        initial={{ scale: 1.18, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.96, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 150, damping: 18 }}
-      >
-        <div className={styles.revealRound}>
-          ROUND {broadcast.payload.roundNumber} · STANDOFF {broadcast.payload.matchupId}
-        </div>
-        <div className={styles.revealHead}>{broadcast.payload.headline}</div>
-        <div className={styles.revealLines}>
-          {broadcast.payload.lines.map((line, i) => (
-            <div key={i} className={styles.revealLine}>
-              {line}
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
 export default function Overlays({ overlay }: { overlay: Broadcast | null }) {
   return (
     <AnimatePresence>
@@ -101,9 +62,6 @@ export default function Overlays({ overlay }: { overlay: Broadcast | null }) {
       )}
       {overlay !== null && overlay.type === "EVENT_SCORE" && (
         <ScoreBanner key={`score-${overlay.id}`} broadcast={overlay} />
-      )}
-      {overlay !== null && overlay.type === "BLOOD_REVEAL" && (
-        <RevealOverlay key={`reveal-${overlay.id}`} broadcast={overlay} />
       )}
     </AnimatePresence>
   );

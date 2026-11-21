@@ -7,7 +7,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { ExportShapeSchema } from "@/lib/api-schemas";
 import type { ExportShape, StatePayload } from "@/lib/types";
 import { badRequest, buildDump, insertSnapshot, mutate, notFound, RepoError } from "./core";
-import { getDb } from "./index";
+import { ensureSeeded, getDb } from "./index";
 import {
   appState,
   bloodMatchups,
@@ -58,6 +58,8 @@ export async function restoreDump(dump: unknown): Promise<StatePayload> {
         data.events.map((e) => ({ ...e, updatedAt: new Date() })),
       );
     }
+    // Events are canon: a legacy dump's "Blood on the Creek" comes back as the dance-off.
+    await ensureSeeded(tx);
     if (data.players.length > 0) {
       await tx.insert(players).values(
         data.players.map((p) => ({

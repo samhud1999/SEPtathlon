@@ -39,30 +39,8 @@ export const CURSE_LEVELS = ["Clean", "Off-Hand", "Knees", "Blind Backwards"] as
 export const TV_MODES = ["LEADERBOARD", "LIVE_EVENT", "BLOOD_STAGE"] as const satisfies readonly TvMode[];
 export const EVENT_STATUSES = ["UPCOMING", "NEXT", "LIVE", "COMPLETED"] as const satisfies readonly EventStatus[];
 export const SCORING_TYPES = ["ELIMINATION", "RAW_HIGH", "FRUIT_SPLIT", "DANCE_OFF"] as const satisfies readonly ScoringType[];
+/** Vestigial — only the export/restore schema still reads the card columns. */
 export const BLOOD_CARDS = ["PURE", "BLOOD"] as const satisfies readonly BloodCard[];
-
-/**
- * Blood on the Creek payoff matrix (design doc §Decisions.1 — PRD leaves the
- * values open; every delta remains editable per-matchup in admin).
- * Key `${cardA}|${cardB}` → [deltaA, deltaB] at 1× stakes.
- */
-export const BLOOD_MATRIX_1V1: Readonly<Record<string, readonly [number, number]>> = {
-  "PURE|PURE": [3, 3],
-  "BLOOD|PURE": [5, -3],
-  "PURE|BLOOD": [-3, 5],
-  "BLOOD|BLOOD": [-2, -2],
-};
-
-/** 3-way standoff: payoff by how many of the three drew BLOOD, at 1× stakes. */
-export const BLOOD_3WAY: Readonly<Record<number, { blood: number; pure: number }>> = {
-  0: { blood: 0, pure: 3 },
-  1: { blood: 6, pure: -2 },
-  2: { blood: 1, pure: -4 },
-  3: { blood: -3, pure: 0 },
-};
-
-/** PRD §2: Round 3 = 2× stakes. */
-export const ROUND_STAKES: Readonly<Record<number, number>> = { 1: 1, 2: 1, 3: 2 };
 
 /** Dance on the Creek: every duo is scored out of this. */
 export const DANCE_MAX_SCORE = 10;

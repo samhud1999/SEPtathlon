@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   ceilToHalf,
-  computeBloodDeltas,
   computeEventStandings,
   computeFruitErrorPct,
   rankByTotal,
   round1,
 } from "@/lib/scoring";
 import { pointsForRank } from "@/lib/constants";
-import type { BloodCard, Standing, StandingInput } from "@/lib/types";
+import type { Standing, StandingInput } from "@/lib/types";
 
 function row(playerId: number, partial: Partial<StandingInput> = {}): StandingInput {
   return {
@@ -316,37 +315,6 @@ describe("computeEventStandings — FRUIT_SPLIT and DANCE_OFF", () => {
 
   it("DANCE_OFF events have no standings", () => {
     expect(computeEventStandings("DANCE_OFF", 7, [row(1), row(2)])).toEqual([]);
-  });
-});
-
-describe("computeBloodDeltas", () => {
-  const d = (round: number, cards: BloodCard[]) => computeBloodDeltas(round, cards);
-
-  it("covers every 1v1 cell at 1x stakes", () => {
-    expect(d(1, ["PURE", "PURE"])).toEqual([3, 3]);
-    expect(d(1, ["BLOOD", "PURE"])).toEqual([5, -3]);
-    expect(d(1, ["PURE", "BLOOD"])).toEqual([-3, 5]);
-    expect(d(2, ["BLOOD", "BLOOD"])).toEqual([-2, -2]);
-  });
-
-  it("round 3 doubles the stakes", () => {
-    expect(d(3, ["BLOOD", "PURE"])).toEqual([10, -6]);
-    expect(d(3, ["PURE", "PURE"])).toEqual([6, 6]);
-  });
-
-  it("covers the 3-way table by blood count", () => {
-    expect(d(1, ["PURE", "PURE", "PURE"])).toEqual([3, 3, 3]);
-    expect(d(1, ["BLOOD", "PURE", "PURE"])).toEqual([6, -2, -2]);
-    expect(d(1, ["PURE", "BLOOD", "BLOOD"])).toEqual([-4, 1, 1]);
-    expect(d(1, ["BLOOD", "BLOOD", "BLOOD"])).toEqual([-3, -3, -3]);
-    expect(d(3, ["BLOOD", "PURE", "PURE"])).toEqual([12, -4, -4]);
-  });
-
-  it("throws on bad card counts and bad rounds", () => {
-    expect(() => d(1, ["PURE"])).toThrow();
-    expect(() => d(1, ["PURE", "PURE", "PURE", "PURE"])).toThrow();
-    expect(() => d(0, ["PURE", "PURE"])).toThrow();
-    expect(() => d(4, ["PURE", "PURE"])).toThrow();
   });
 });
 

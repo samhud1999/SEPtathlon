@@ -290,8 +290,8 @@ async function main(): Promise<void> {
   eq(lbRow(payload, pid(4)).bloodTotal, 5, "round 1 betrayal pays +5");
   eq(lbRow(payload, pid(5)).bloodTotal, -3, "round 1 victim pays −3");
   ok(
-    payload.broadcasts.some((b) => b.type === "BLOOD_REVEAL" && (b.payload as { headline: string }).headline === "BETRAYAL"),
-    "reveal broadcasts BETRAYAL",
+    payload.broadcasts.some((b) => b.type === "EVENT_SCORE" && (b.payload as { eventId: number }).eventId === 7),
+    "duo score broadcasts an EVENT_SCORE for event 7",
   );
 
   res = await call("/api/blood/matchups", { body: { roundNumber: 3, playerIds: [pid(4), pid(5)] } });

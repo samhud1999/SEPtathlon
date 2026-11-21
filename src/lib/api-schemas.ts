@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   BLOOD_CARDS,
+  DANCE_MAX_SCORE,
   EVENT_STATUSES,
   MAX_CURSE_LEVEL,
   MAX_LIVES,
@@ -106,7 +107,7 @@ export const DecreePatchBody = z
   .refine((p) => Object.keys(p).length > 0, { message: "Empty patch" });
 
 // ---------------------------------------------------------------------------
-// Blood on the Creek (PRD §4 Tab 2 Event 7)
+// Dance on the Creek (event 7) — duos live in blood_matchups, routes /api/blood/*
 // ---------------------------------------------------------------------------
 
 const roundNumber = z.number().int().min(1).max(3);
@@ -118,18 +119,10 @@ export const BloodCreateBody = z.object({
   playerIds: z.array(id).min(2).max(3),
 });
 
-export const BloodPatchBody = z
-  .object({
-    cardA: z.enum(BLOOD_CARDS).nullish(),
-    cardB: z.enum(BLOOD_CARDS).nullish(),
-    cardC: z.enum(BLOOD_CARDS).nullish(),
-    reveal: z.boolean().optional(),
-    unreveal: z.boolean().optional(),
-    deltaA: z.number().finite().optional(),
-    deltaB: z.number().finite().optional(),
-    deltaC: z.number().finite().optional(),
-  })
-  .refine((p) => Object.keys(p).length > 0, { message: "Empty patch" });
+/** A duo's score out of 10 (decimals allowed); null clears it. */
+export const BloodPatchBody = z.object({
+  score: z.number().finite().min(0).max(DANCE_MAX_SCORE).nullable(),
+});
 
 // ---------------------------------------------------------------------------
 // TV + system (PRD §4 Tab 4)
@@ -157,12 +150,17 @@ const playerExport = z.object({
   createdAt: isoDate,
 });
 
+/** Pre-dance exports call event 7 BLOOD_MATRIX; they restore as DANCE_OFF. */
+const LEGACY_SCORING_TYPES = [...SCORING_TYPES, "BLOOD_MATRIX"] as const;
+
 const eventExport = z.object({
   id,
   slug: z.string().max(30),
   name: z.string().max(100),
   sin: z.string().max(30),
-  scoringType: z.enum(SCORING_TYPES),
+  scoringType: z
+    .enum(LEGACY_SCORING_TYPES)
+    .transform((v) => (v === "BLOOD_MATRIX" ? "DANCE_OFF" : v)),
   status: z.enum(EVENT_STATUSES),
 });
 

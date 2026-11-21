@@ -4,11 +4,11 @@
  */
 
 import { and, asc, desc, eq, inArray, max, ne } from "drizzle-orm";
-import { DEFAULT_LIVES } from "@/lib/constants";
-import { fmtSigned, ordinal } from "@/lib/format";
-import { computeBloodDeltas, computeEventStandings } from "@/lib/scoring";
+import { DANCE_MAX_SCORE, DEFAULT_LIVES } from "@/lib/constants";
+import { duoNames } from "@/lib/dance";
+import { fmtPts, ordinal } from "@/lib/format";
+import { computeEventStandings, round1 } from "@/lib/scoring";
 import type {
-  BloodCard,
   BloodMatchupPublic,
   DecreeRow,
   EventStatus,
@@ -395,10 +395,10 @@ export async function listDecrees(): Promise<DecreeRow[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Blood on the Creek (PRD §4 Tab 2 Event 7)
+// Dance on the Creek (event 7): duos in blood_matchups, score in the deltas
 // ---------------------------------------------------------------------------
 
-/** Admin view: full matchups including unrevealed cards. */
+/** Admin list of duos (same shape the public state carries). */
 export async function listBloodMatchups(): Promise<BloodMatchupPublic[]> {
   const db = await getDb();
   const rows = await db.select().from(bloodMatchups).orderBy(asc(bloodMatchups.id));
@@ -425,30 +425,16 @@ function shuffle<T>(items: T[]): T[] {
 export async function generateBloodRound(roundNumber: number): Promise<StatePayload> {
   if (roundNumber < 1 || roundNumber > 3) throw badRequest("Rounds are 1, 2 and 3");
   await mutate(async (tx) => {
-    const revealed = await tx
-      .select()
-      .from(bloodMatchups)
-      .where(and(eq(bloodMatchups.roundNumber, roundNumber), eq(bloodMatchups.isRevealed, true)));
-    const locked = new Set<number>();
-    for (const m of revealed) {
-      locked.add(m.playerAId);
-      locked.add(m.playerBId);
-      if (m.playerCId != null) locked.add(m.playerCId);
-    }
-
-    await tx
-      .delete(bloodMatchups)
-      .where(and(eq(bloodMatchups.roundNumber, roundNumber), eq(bloodMatchups.isRevealed, false)));
-
     const actives = await tx
       .select({ id: players.id })
       .from(players)
       .where(eq(players.isActive, true));
-    const candidates = shuffle(actives.map((p) => p.id).filter((id) => !locked.has(id)));
-    if (candidates.length < 2) {
-      throw badRequest("Not enough unseated tributes to pair for this round");
-    }
+    if (actives.length < 2) throw badRequest("Not enough active tributes to draw duos");
 
+    // The dance-off is a single draw: redrawing wipes every duo, scored or not.
+    await tx.delete(bloodMatchups);
+
+    const candidates = shuffle(actives.map((p) => p.id));
     const values: Array<typeof bloodMatchups.$inferInsert> = [];
     let i = 0;
     while (candidates.length - i >= 2) {
@@ -482,7 +468,7 @@ export async function createBloodMatchup(input: {
 }): Promise<StatePayload> {
   if (input.roundNumber < 1 || input.roundNumber > 3) throw badRequest("Rounds are 1, 2 and 3");
   if (new Set(input.playerIds).size !== input.playerIds.length) {
-    throw badRequest("A tribute cannot face themselves");
+    throw badRequest("A tribute cannot dance with themselves");
   }
   await mutate(async (tx) => {
     await requirePlayers(tx, input.playerIds);
@@ -498,111 +484,47 @@ export async function createBloodMatchup(input: {
   return getStatePayload();
 }
 
+/**
+ * Score a duo (0–10, one decimal): every seat's delta becomes the score and the
+ * row is marked scored (`isRevealed`), so `computeTotals` credits each member
+ * once. `score: null` clears it and drops the duo from the Dance total.
+ */
 export async function patchBloodMatchup(
   id: number,
-  patch: {
-    cardA?: BloodCard | null;
-    cardB?: BloodCard | null;
-    cardC?: BloodCard | null;
-    reveal?: boolean;
-    unreveal?: boolean;
-    deltaA?: number;
-    deltaB?: number;
-    deltaC?: number;
-  },
+  patch: { score: number | null },
 ): Promise<StatePayload> {
+  if (patch.score != null && (patch.score < 0 || patch.score > DANCE_MAX_SCORE)) {
+    throw badRequest(`Score must be between 0 and ${DANCE_MAX_SCORE}`);
+  }
+  const score = patch.score == null ? null : round1(patch.score);
+
   await mutate(async (tx) => {
     const [m] = await tx.select().from(bloodMatchups).where(eq(bloodMatchups.id, id));
     if (!m) throw notFound(`Matchup ${id}`);
 
-    const working = { ...m };
-    if (patch.unreveal) working.isRevealed = false;
-
-    const cardEdits: Array<["cardA" | "cardB" | "cardC", BloodCard | null | undefined]> = [
-      ["cardA", patch.cardA],
-      ["cardB", patch.cardB],
-      ["cardC", patch.cardC],
-    ];
-    for (const [field, value] of cardEdits) {
-      if (value === undefined) continue;
-      if (working.isRevealed) throw conflict("Unreveal the matchup before changing cards");
-      if (field === "cardC" && working.matchupType !== "3WAY" && value != null) {
-        throw badRequest("This matchup has no third seat");
-      }
-      working[field] = value;
-    }
-
-    let revealedNow = false;
-    if (patch.reveal) {
-      const cards = [working.cardA, working.cardB];
-      if (working.matchupType === "3WAY") cards.push(working.cardC);
-      if (cards.some((c) => c == null)) {
-        throw conflict("All tributes must lock a card before the reveal");
-      }
-      const deltas = computeBloodDeltas(working.roundNumber, cards as BloodCard[]);
-      working.deltaA = deltas[0] as number;
-      working.deltaB = deltas[1] as number;
-      if (working.matchupType === "3WAY") working.deltaC = deltas[2] as number;
-      working.isRevealed = true;
-      revealedNow = true;
-    }
-
-    for (const [field, value] of [
-      ["deltaA", patch.deltaA],
-      ["deltaB", patch.deltaB],
-      ["deltaC", patch.deltaC],
-    ] as const) {
-      if (value === undefined) continue;
-      if (!working.isRevealed) throw badRequest("Deltas apply to revealed matchups only");
-      working[field] = value;
-    }
-
-    await tx
+    const delta = score ?? 0;
+    const [updated] = await tx
       .update(bloodMatchups)
       .set({
-        cardA: working.cardA,
-        cardB: working.cardB,
-        cardC: working.cardC,
-        deltaA: working.deltaA,
-        deltaB: working.deltaB,
-        deltaC: working.deltaC,
-        isRevealed: working.isRevealed,
+        deltaA: delta,
+        deltaB: delta,
+        deltaC: m.matchupType === "3WAY" ? delta : 0,
+        isRevealed: score != null,
         updatedAt: new Date(),
       })
-      .where(eq(bloodMatchups.id, id));
+      .where(eq(bloodMatchups.id, id))
+      .returning();
 
-    if (revealedNow) {
-      const seats: Array<{ playerId: number; card: BloodCard; delta: number }> = [
-        { playerId: working.playerAId, card: working.cardA as BloodCard, delta: working.deltaA },
-        { playerId: working.playerBId, card: working.cardB as BloodCard, delta: working.deltaB },
-      ];
-      if (working.matchupType === "3WAY" && working.playerCId != null) {
-        seats.push({
-          playerId: working.playerCId,
-          card: working.cardC as BloodCard,
-          delta: working.deltaC,
-        });
-      }
-      const names = await requirePlayers(
-        tx,
-        seats.map((s) => s.playerId),
-      );
-      const allPure = seats.every((s) => s.card === "PURE");
-      const allBlood = seats.every((s) => s.card === "BLOOD");
-      const headline = allPure
-        ? "HONOUR AMONG TRIBUTES"
-        : allBlood
-          ? "MUTUAL DESTRUCTION"
-          : "BETRAYAL";
-      await addBroadcast(tx, "BLOOD_REVEAL", {
-        matchupId: id,
-        roundNumber: working.roundNumber,
-        headline,
-        lines: seats.map((s) =>
-          s.card === "BLOOD"
-            ? `${names.get(s.playerId)} drew BLOOD (${fmtSigned(s.delta)})`
-            : `${names.get(s.playerId)} kept PURE (${fmtSigned(s.delta)})`,
-        ),
+    if (score != null && updated) {
+      const seatIds = [m.playerAId, m.playerBId];
+      if (m.playerCId != null) seatIds.push(m.playerCId);
+      const names = await requirePlayers(tx, seatIds);
+      const duo = toMatchupShape(updated, (pid) => names.get(pid) ?? `Tribute #${pid}`, true);
+      const [dance] = await tx.select({ name: events.name }).from(events).where(eq(events.id, 7));
+      await addBroadcast(tx, "EVENT_SCORE", {
+        eventId: 7,
+        eventName: dance?.name ?? "Dance on the Creek",
+        message: `${duoNames(duo)} — ${fmtPts(score)}/10`,
       });
     }
   });

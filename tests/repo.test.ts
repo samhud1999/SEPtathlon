@@ -306,88 +306,86 @@ describe("decrees", () => {
   });
 });
 
-describe("blood on the creek", () => {
+describe("dance on the creek", () => {
   async function thirteen(): Promise<number[]> {
     const ids = await addPlayers(["P1","P2","P3","P4","P5","P6","P7","P8","P9","P10","P11","P12","P13"]);
     return [...ids.values()];
   }
 
-  it("generates five 1v1s and one 3-way for 13 actives", async () => {
+  it("draws five duos and one trio for 13 actives", async () => {
     await thirteen();
     const payload = await generateBloodRound(1);
-    const matchups = payload.blood.matchups;
-    expect(matchups).toHaveLength(6);
-    expect(matchups.filter((m) => m.matchupType === "3WAY")).toHaveLength(1);
-    const seated = matchups.flatMap((m) => m.players.map((p) => p.playerId));
+    const duos = payload.blood.matchups;
+    expect(duos).toHaveLength(6);
+    expect(duos.filter((m) => m.matchupType === "3WAY")).toHaveLength(1);
+    const seated = duos.flatMap((m) => m.players.map((p) => p.playerId));
     expect(new Set(seated).size).toBe(13);
-    expect(seated).toHaveLength(13);
+    expect(duos.every((m) => !m.isRevealed)).toBe(true);
   });
 
-  it("needs at least two pairable tributes", async () => {
+  it("needs at least two active tributes", async () => {
     await addPlayers(["Solo"]);
     await expect(generateBloodRound(1)).rejects.toMatchObject({ status: 400 });
   });
 
-  it("reveal computes matrix deltas, hides cards until then, and feeds totals", async () => {
+  it("redrawing wipes every duo, scored and legacy rounds included", async () => {
+    const players = await thirteen();
+    await generateBloodRound(1);
+    const first = (await listBloodMatchups())[0];
+    await patchBloodMatchup(first?.id as number, { score: 7 });
+    await createBloodMatchup({ roundNumber: 3, playerIds: [players[0] as number, players[1] as number] });
+    const payload = await generateBloodRound(1);
+    expect(payload.blood.matchups.some((m) => m.id === first?.id)).toBe(false);
+    expect(payload.blood.matchups.every((m) => m.roundNumber === 1 && !m.isRevealed)).toBe(true);
+    expect(payload.leaderboard.every((r) => r.bloodTotal === 0)).toBe(true);
+    const seated = payload.blood.matchups.flatMap((m) => m.players.map((p) => p.playerId));
+    expect(new Set(seated).size).toBe(players.length);
+  });
+
+  it("a duo score lands on both members once, is amendable, and clears", async () => {
     const ids = await addPlayers(["A", "B"]);
     const a = ids.get("A") as number;
     const b = ids.get("B") as number;
     let payload = await createBloodMatchup({ roundNumber: 1, playerIds: [a, b] });
-    const m = payload.blood.matchups[0];
-    expect(m?.matchupType).toBe("1V1");
-    const mid = m?.id as number;
-
-    await expect(patchBloodMatchup(mid, { reveal: true })).rejects.toMatchObject({ status: 409 });
-
-    payload = await patchBloodMatchup(mid, { cardA: "BLOOD", cardB: "PURE" });
-    const pub = payload.blood.matchups[0];
-    expect(pub?.players[0]).toMatchObject({ cardSet: true, card: null, delta: 0 });
-    const admin = await listBloodMatchups();
-    expect(admin[0]?.players[0]?.card).toBe("BLOOD");
-    expect(lb(payload, a).bloodTotal).toBe(0);
-
-    payload = await patchBloodMatchup(mid, { reveal: true });
-    const revealed = payload.blood.matchups[0];
-    expect(revealed?.isRevealed).toBe(true);
-    expect(revealed?.players[0]).toMatchObject({ card: "BLOOD", delta: 5 });
-    expect(revealed?.players[1]).toMatchObject({ card: "PURE", delta: -3 });
-    expect(lb(payload, a).bloodTotal).toBe(5);
-    expect(lb(payload, b).bloodTotal).toBe(-3);
-    const bc = payload.broadcasts.filter((x) => x.type === "BLOOD_REVEAL");
-    expect(bc).toHaveLength(1);
-    expect(bc[0]?.payload).toMatchObject({ matchupId: mid, headline: "BETRAYAL" });
-
-    payload = await patchBloodMatchup(mid, { unreveal: true });
-    expect(lb(payload, a).bloodTotal).toBe(0);
-  });
-
-  it("round 3 doubles stakes; manual deltas editable after reveal", async () => {
-    const ids = await addPlayers(["A", "B"]);
-    const a = ids.get("A") as number;
-    const b = ids.get("B") as number;
-    let payload = await createBloodMatchup({ roundNumber: 3, playerIds: [a, b] });
     const mid = payload.blood.matchups[0]?.id as number;
-    await patchBloodMatchup(mid, { cardA: "BLOOD", cardB: "PURE" });
-    payload = await patchBloodMatchup(mid, { reveal: true });
-    expect(lb(payload, a).bloodTotal).toBe(10);
-    expect(lb(payload, b).bloodTotal).toBe(-6);
-    payload = await patchBloodMatchup(mid, { deltaB: -2 });
-    expect(lb(payload, b).bloodTotal).toBe(-2);
+    expect(lb(payload, a).bloodTotal).toBe(0);
+
+    payload = await patchBloodMatchup(mid, { score: 7.5 });
+    const duo = payload.blood.matchups[0];
+    expect(duo?.isRevealed).toBe(true);
+    expect(duo?.players.map((p) => p.delta)).toEqual([7.5, 7.5]);
+    expect(lb(payload, a)).toMatchObject({ bloodTotal: 7.5, total: 7.5 });
+    expect(lb(payload, b)).toMatchObject({ bloodTotal: 7.5, total: 7.5 });
+    const bc = payload.broadcasts.filter((x) => x.type === "EVENT_SCORE");
+    expect(bc.at(-1)?.payload).toMatchObject({ eventId: 7, eventName: "Dance on the Creek", message: "A & B — 7.5/10" });
+
+    payload = await patchBloodMatchup(mid, { score: 9 });
+    expect(lb(payload, a).bloodTotal).toBe(9);
+
+    const before = payload.broadcasts.length;
+    payload = await patchBloodMatchup(mid, { score: null });
+    expect(payload.blood.matchups[0]?.isRevealed).toBe(false);
+    expect(lb(payload, a).bloodTotal).toBe(0);
+    expect(lb(payload, b).total).toBe(0);
+    expect(payload.broadcasts.length).toBe(before);
   });
 
-  it("regenerating preserves revealed matchups and reseats only the rest", async () => {
-    const players = await thirteen();
-    await generateBloodRound(1);
-    const admin = await listBloodMatchups();
-    const first = admin.find((m) => m.matchupType === "1V1");
-    const mid = first?.id as number;
-    await patchBloodMatchup(mid, { cardA: "BLOOD", cardB: "BLOOD" });
-    await patchBloodMatchup(mid, { reveal: true });
-    const payload = await generateBloodRound(1);
-    const matchups = payload.blood.matchups;
-    expect(matchups.some((m) => m.id === mid && m.isRevealed)).toBe(true);
-    const seated = matchups.flatMap((m) => m.players.map((p) => p.playerId));
-    expect(new Set(seated).size).toBe(players.length);
+  it("a trio score lands on all three", async () => {
+    const ids = await addPlayers(["A", "B", "C"]);
+    const [a, b, c] = [ids.get("A") as number, ids.get("B") as number, ids.get("C") as number];
+    let payload = await createBloodMatchup({ roundNumber: 1, playerIds: [a, b, c] });
+    payload = await patchBloodMatchup(payload.blood.matchups[0]?.id as number, { score: 6 });
+    expect([a, b, c].map((id) => lb(payload, id).bloodTotal)).toEqual([6, 6, 6]);
+  });
+
+  it("rejects scores outside 0–10 and rounds to one decimal", async () => {
+    const ids = await addPlayers(["A", "B"]);
+    let payload = await createBloodMatchup({ roundNumber: 1, playerIds: [ids.get("A") as number, ids.get("B") as number] });
+    const mid = payload.blood.matchups[0]?.id as number;
+    await expect(patchBloodMatchup(mid, { score: 11 })).rejects.toMatchObject({ status: 400 });
+    await expect(patchBloodMatchup(mid, { score: -0.5 })).rejects.toMatchObject({ status: 400 });
+    payload = await patchBloodMatchup(mid, { score: 7.55 });
+    expect(lb(payload, ids.get("A") as number).bloodTotal).toBe(7.6);
   });
 });
 
@@ -434,6 +432,25 @@ describe("backups", () => {
     expect(after.players).toHaveLength(3);
     const snaps = await listSnapshots();
     expect(snaps.some((s) => s.note === "pre-restore")).toBe(true);
+  });
+
+  it("a legacy export (BLOOD_MATRIX event 7, carded matchups) restores as the dance-off", async () => {
+    const ids = await addPlayers(["A", "B"]);
+    const a = ids.get("A") as number;
+    const b = ids.get("B") as number;
+    const dump = await exportDump();
+    const legacy = JSON.parse(JSON.stringify(dump)) as Record<string, unknown>;
+    const evs = legacy["events"] as Array<Record<string, unknown>>;
+    evs[6] = { ...evs[6], slug: "blood-on-the-creek", name: "Blood on the Creek", scoringType: "BLOOD_MATRIX" };
+    (legacy["bloodMatchups"] as unknown[]).push({
+      id: 1, roundNumber: 3, matchupType: "1V1", playerAId: a, playerBId: b, playerCId: null,
+      cardA: "BLOOD", cardB: "PURE", cardC: null, deltaA: 10, deltaB: -6, deltaC: 0, isRevealed: true,
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    });
+    const payload = await restoreDump(legacy);
+    expect(payload.events[6]).toMatchObject({ slug: "dance-on-the-creek", name: "Dance on the Creek", scoringType: "DANCE_OFF" });
+    expect(lb(payload, a).bloodTotal).toBe(10);
+    expect(payload.blood.matchups[0]?.isRevealed).toBe(true);
   });
 
   it("rejects garbage without touching the database", async () => {

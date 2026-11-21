@@ -51,8 +51,6 @@ function overlayHoldMs(b: Broadcast): number {
   switch (b.type) {
     case "DECREE":
       return 5000;
-    case "BLOOD_REVEAL":
-      return 5000;
     default:
       return 4000;
   }

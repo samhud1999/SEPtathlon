@@ -115,7 +115,7 @@
     { "id": 1, "playerId": 1, "playerName": "Davo", "pointsDelta": -3, "sinTag": "Sloth", "reason": "Left an empty tinny on the balcony rail", "isVoided": false, "createdAt": "2026-11-13T22:05:00.000Z" }
   ],
   "broadcasts": [
-    { "id": 21, "type": "BLOOD_REVEAL", "createdAt": "2026-11-14T06:14:30.000Z", "payload": { "matchupId": 1, "roundNumber": 1, "headline": "BETRAYAL", "lines": ["Davo drew BLOOD (+5)", "Gazza kept PURE (−3)"] } },
+    { "id": 21, "type": "EVENT_SCORE", "createdAt": "2026-11-14T06:14:30.000Z", "payload": { "eventId": 7, "eventName": "Dance on the Creek", "message": "Davo & Gazza — 5/10" } },
     { "id": 22, "type": "EVENT_SCORE", "createdAt": "2026-11-14T06:30:00.000Z", "payload": { "eventId": 3, "eventName": "The Weekly 50", "message": "The Weekly 50 scores committed" } },
     { "id": 23, "type": "DECREE", "createdAt": "2026-11-14T06:35:00.000Z", "payload": { "playerNames": ["Tommo"], "pointsDelta": 2, "sinTag": "Blessing of the Creek", "reason": "Saved the esky from the tide" } }
   ]

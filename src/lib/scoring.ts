@@ -3,13 +3,8 @@
  * No IO, no Date, no randomness — everything here is deterministic and unit-tested.
  */
 
-import {
-  BLOOD_3WAY,
-  BLOOD_MATRIX_1V1,
-  ROUND_STAKES,
-  pointsForRank,
-} from "./constants";
-import type { BloodCard, ScoringType, Standing, StandingInput } from "./types";
+import { pointsForRank } from "./constants";
+import type { ScoringType, Standing, StandingInput } from "./types";
 
 /** PRD §3.2 tie-splitting rounding: up to the nearest half. */
 export function ceilToHalf(x: number): number {
@@ -170,30 +165,6 @@ export function computeEventStandings(
     if (b.calculatedRank == null) return -1;
     return a.calculatedRank - b.calculatedRank || a.playerId - b.playerId;
   });
-}
-
-/**
- * Blood on the Creek deltas (design doc decision 1). Cards in seat order;
- * result deltas in the same order. Round 3 doubles the stakes.
- */
-export function computeBloodDeltas(roundNumber: number, cards: BloodCard[]): number[] {
-  const stakes = ROUND_STAKES[roundNumber];
-  if (stakes == null) throw new Error(`Unknown round ${roundNumber} — rounds are 1, 2 and 3`);
-
-  if (cards.length === 2) {
-    const pair = BLOOD_MATRIX_1V1[`${cards[0]}|${cards[1]}`];
-    if (!pair) throw new Error("Unknown card combination");
-    return [pair[0] * stakes, pair[1] * stakes];
-  }
-
-  if (cards.length === 3) {
-    const bloodCount = cards.filter((c) => c === "BLOOD").length;
-    const payoff = BLOOD_3WAY[bloodCount];
-    if (!payoff) throw new Error("Unknown card combination");
-    return cards.map((c) => (c === "BLOOD" ? payoff.blood : payoff.pure) * stakes);
-  }
-
-  throw new Error("A standoff takes exactly 2 or 3 cards");
 }
 
 /** Competition ranking over grand totals: ties share a rank, the next rank skips. */
