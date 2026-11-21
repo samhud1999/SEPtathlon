@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#12131a" />
+    <title>Vote</title>
+    <link rel="stylesheet" href="/style.css" />
+    <style>
+      /* Phone ballot: one tap per option, change your mind until the host closes it. */
+      .ballot { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 560px; }
+      .ballot .opt { width: 100%; min-height: 64px; font-size: 1.1rem; }
+      .ballot .opt.picked { outline: 4px solid #fff; }
+      .ballot .opt.other { opacity: 0.5; }
+      .ballot .opt .tick { margin-left: auto; font-size: 1.3em; }
+      .tally { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 560px; text-align: left; }
+      .trow { background: var(--panel); border-radius: 12px; padding: 10px 14px; display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; font-weight: 700; }
+      .trow .meter { grid-column: 1 / -1; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+      .trow .meter i { display: block; height: 100%; background: var(--accent); }
+      .trow.win { outline: 2px solid var(--c2); }
+      .trow .total { font-variant-numeric: tabular-nums; font-size: 1.2rem; font-weight: 800; }
+      .weight { display: inline-block; background: var(--c2); color: #1a1600; border-radius: 999px; padding: 4px 12px; font-weight: 800; font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <div id="offline" class="offline" hidden>Reconnecting…</div>
+    <div id="top" class="topbar" hidden></div>
+    <main id="app" class="center"><p class="muted">Connecting…</p></main>
+
+    <script src="/client.js"></script>
+    <script>
+      "use strict";
+      let id = localStorage.getItem("vote-id");
+      if (!id) {
+        id = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now();
+        localStorage.setItem("vote-id", id);
+      }
+      let state = null;
+      let screenKey = "";
+      let errorMsg = "";
+
+      const sock = connect({
+        path: "/vote/ws",
+        onOpen: (s) => s.send({ type: "hello", id }),
+        onStatus: (up) => ($("#offline").hidden = up),
+        onMessage(msg) {
+          if (msg.type === "error") {
+            errorMsg = msg.error;
+            screenKey = "";
+            render();
+            return;
+          }
+          if (msg.type === "kicked") {
+            localStorage.removeItem("vote-id");
+            location.reload();
+            return;
+          }
+          if (msg.type === "state") {
+            state = msg;
+            render();
+          }
+        },
+      });
+
+      function keyFor(s) {
+        return JSON.stringify([s.phase, s.title, s.options, s.choice, s.counts, s.results, s.weight, errorMsg]);
+      }
+
+      function render() {
+        if (!state) return;
+        const s = state;
+        const top = $("#top");
+        top.hidden = s.phase === "join";
+        if (!top.hidden) top.innerHTML = `<span>${esc(s.name)}</span><span class="muted">${s.weight === 2 ? "counts ×2" : "1 vote"}</span>`;
+
+        const k = keyFor(s);
+        if (k === screenKey) return; // keep inputs/focus intact between syncs
+        screenKey = k;
+        const app = $("#app");
+        app.className = "center";
+
+        if (s.phase === "join") {
+          app.innerHTML = `
+            <div class="stack">
+              <span class="badge">Team vote</span>
+              <div class="big">Register to vote</div>
+              <form id="joinForm" class="stack">
+                <input id="name" type="text" maxlength="20" placeholder="Your name" autocomplete="off" autocapitalize="words" required />
+                <button type="submit">I'm in</button>
+                ${errorMsg ? `<div class="bad">${esc(errorMsg)}</div>` : ""}
+              </form>
+            </div>`;
+          $("#joinForm").onsubmit = (e) => {
+            e.preventDefault();
+            errorMsg = "";
+            sock.send({ type: "join", id, name: $("#name").value });
+          };
+          $("#name").focus();
+          return;
+        }
+
+        if (s.phase === "lobby") {
+          app.innerHTML = `<div class="big">You're in, ${esc(s.name)}!</div>
+            ${s.weight === 2 ? `<span class="weight">Your vote counts ×2</span>` : ""}
+            <p class="muted">Sam is setting up the vote. Keep this page open.</p>
+            <p class="muted">${s.counts.of} registered</p>`;
+          return;
+        }
+
+        if (s.phase === "open") {
+          const picked = s.choice;
+          app.innerHTML = `
+            <div class="stack" style="max-width:560px">
+              <span class="badge">Vote now</span>
+              <div class="big">${esc(s.title || "Pick your winner")}</div>
+              <p class="muted" style="margin:0">Tap one. You can change your mind until Sam closes the vote.</p>
+            </div>
+            <div class="ballot">${s.options
+              .map(
+                (o, i) => `<button class="opt c${i % 6} ${picked ? (picked === o.id ? "picked" : "other") : ""}" data-o="${esc(o.id)}">
+                  <span class="shape">${i + 1}</span>${esc(o.name)}${picked === o.id ? `<span class="tick">✓</span>` : ""}</button>`,
+              )
+              .join("")}</div>
+            <p class="muted">${picked ? "Vote counted · " : ""}${s.counts.voters} of ${s.counts.of} voted${s.weight === 2 ? " · yours counts ×2" : ""}</p>
+            ${errorMsg ? `<div class="bad">${esc(errorMsg)}</div>` : ""}`;
+          app.querySelectorAll(".opt").forEach((b) => {
+            b.onclick = () => {
+              errorMsg = "";
+              if (navigator.vibrate) navigator.vibrate(30);
+              sock.send({ type: "cast", option: b.dataset.o });
+            };
+          });
+          return;
+        }
+
+        if (s.phase === "closed") {
+          const t = s.results.tally;
+          const win = s.results.winners;
+          const max = Math.max(1, ...t.map((r) => r.total));
+          const mine = s.options.find((o) => o.id === s.choice);
+          const c = s.counts;
+          app.innerHTML = `
+            <span class="badge">Results</span>
+            <div class="big">${esc(s.title || "The vote")}</div>
+            <div class="tally">${t
+              .map(
+                (r) => `<div class="trow ${win.includes(r.id) ? "win" : ""}"><span>${win.includes(r.id) ? "🏆 " : ""}${esc(r.name)}</span>
+                  <span class="total">${r.total}</span><div class="meter"><i style="width:${(r.total / max) * 100}%"></i></div></div>`,
+              )
+              .join("")}</div>
+            <p class="muted">${mine ? `You voted for <b>${esc(mine.name)}</b>. ` : "You didn't vote. "}${c.voters} of ${c.of} voted · ${c.weighted} weighted votes</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>

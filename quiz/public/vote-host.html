@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#12131a" />
+    <title>Vote · Host</title>
+    <link rel="stylesheet" href="/style.css" />
+    <style>
+      /* Host screen: works on the phone, scales to the TV. Setup card is static so typing survives syncs. */
+      .ctl { padding: 12px 14px calc(84px + env(safe-area-inset-bottom, 0px)); max-width: 1100px; margin: 0 auto; width: 100%; display: grid; grid-template-columns: 1fr; gap: 14px; align-content: start; }
+      @media (min-width: 900px) { .ctl { grid-template-columns: 1fr 1fr; } .ctl .wide { grid-column: 1 / -1; } }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+      .card h2 { margin: 0; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+      .card h2 span { letter-spacing: 0; text-transform: none; font-weight: 600; }
+      .head { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .phase { font-size: 1.5rem; font-weight: 900; line-height: 1.1; }
+      .qrbox { display: flex; gap: 12px; align-items: center; }
+      .qrbox .qr { width: 96px; padding: 6px; border-radius: 10px; }
+      .qrbox .joinurl { font-size: 1.05rem; }
+      .optrow { display: flex; gap: 8px; align-items: center; }
+      .optrow .n { width: 1.6em; text-align: center; color: var(--muted); font-weight: 800; }
+      .card input { padding: 12px 14px; font-size: 1.05rem; border-radius: 10px; background: var(--bg); }
+      .optrow .x, .voter .x { background: transparent; border: 1px solid var(--line); color: var(--muted); padding: 10px 12px; border-radius: 10px; }
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .actions button { padding: 12px 16px; }
+      .list { display: flex; flex-direction: column; gap: 6px; }
+      .voter { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; background: var(--bg); border-radius: 10px; padding: 6px 6px 6px 12px; font-weight: 700; }
+      .voter.off { opacity: 0.45; }
+      .voter .st { color: var(--muted); font-weight: 600; font-size: 0.8rem; margin-left: 6px; }
+      .voter .st.yes { color: var(--good); }
+      .voter .w { padding: 8px 12px; border-radius: 999px; font-size: 0.85rem; background: var(--line); color: var(--text); }
+      .voter .w.on { background: var(--c2); color: #1a1600; }
+      .voter .x { padding: 8px 12px; border-radius: 999px; font-size: 0.85rem; }
+      .trow { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; background: var(--bg); border-radius: 10px; padding: 10px 12px; font-weight: 700; }
+      .trow .meter { grid-column: 1 / -1; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+      .trow .meter i { display: block; height: 100%; background: var(--accent); }
+      .trow.win { outline: 2px solid var(--c2); }
+      .trow .total { font-variant-numeric: tabular-nums; font-size: 1.2rem; font-weight: 800; }
+      .trow .who { grid-column: 1 / -1; color: var(--muted); font-size: 0.8rem; font-weight: 500; }
+      .mini { font-size: 0.85rem; color: var(--muted); }
+      .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom, 0px)); background: var(--bad); color: #fff; padding: 10px 16px; border-radius: 999px; font-weight: 700; z-index: 5; }
+    </style>
+  </head>
+  <body>
+    <div id="offline" class="offline" hidden>Reconnecting…</div>
+    <main id="app" class="center">
+      <form id="pinForm" class="stack">
+        <div class="big">Run the vote</div>
+        <p class="muted">Same PIN as the quiz host screen. Voters go to /vote.</p>
+        <input id="pin" type="password" inputmode="numeric" placeholder="Host PIN" autocomplete="off" />
+        <button type="submit">Take control</button>
+        <div id="pinErr" class="bad"></div>
+      </form>
+    </main>
+    <nav id="controls" class="controls" hidden>
+      <span id="info" class="muted"></span>
+      <span class="spacer"></span>
+      <button id="reset" class="ghost">Reset</button>
+      <button id="alt" class="ghost" hidden>Reopen voting</button>
+      <button id="next">Open voting</button>
+    </nav>
+    <div id="toast" class="toast" hidden></div>
+
+    <script src="/client.js"></script>
+    <script>
+      "use strict";
+      let pin = sessionStorage.getItem("quiz-pin") || "";
+      let authed = false;
+      let state = null;
+      let screenKey = "";
+      let dirty = false; // host has typed in the setup card since the last save
+      const joinUrl = location.origin + "/vote";
+      const shortUrl = joinUrl.replace(/^https?:\/\//, "");
+
+      const sock = connect({
+        path: "/vote/ws",
+        onOpen: (s) => pin && s.send({ type: "host", pin }),
+        onStatus: (up) => ($("#offline").hidden = up),
+        onMessage(msg) {
+          if (msg.type === "error") {
+            if (!authed) {
+              sessionStorage.removeItem("quiz-pin");
+              $("#pinErr") && ($("#pinErr").textContent = msg.error);
+            } else toast(msg.error);
+            return;
+          }
+          if (msg.type === "state") {
+            if (!authed) {
+              authed = true;
+              sessionStorage.setItem("quiz-pin", pin);
+              layout();
+            }
+            state = msg;
+            render();
+          }
+        },
+      });
+
+      $("#pinForm").onsubmit = (e) => {
+        e.preventDefault();
+        pin = $("#pin").value.trim();
+        sock.send({ type: "host", pin });
+      };
+
+      let toastTimer = null;
+      function toast(text) {
+        const t = $("#toast");
+        t.textContent = text;
+        t.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => (t.hidden = true), 3000);
+      }
+
+      // Two-tap buttons (no browser dialogs).
+      function twoTap(btn, label, armedLabel, action) {
+        let armed = null;
+        btn.onclick = () => {
+          if (armed) {
+            clearTimeout(armed);
+            armed = null;
+            btn.textContent = label;
+            action();
+            return;
+          }
+          btn.textContent = armedLabel;
+          armed = setTimeout(() => {
+            armed = null;
+            btn.textContent = label;
+          }, 3000);
+        };
+      }
+      twoTap($("#reset"), "Reset", "Wipe everyone?", () => sock.send({ type: "reset" }));
+
+      $("#next").onclick = () => {
+        if (!state) return;
+        if (state.phase === "lobby") {
+          if (dirty) save();
+          sock.send({ type: "open" });
+        } else if (state.phase === "open") {
+          sock.send({ type: "close" });
+        } else {
+          // "New vote" is armed separately so a stray tap can't throw away a result.
+          const b = $("#next");
+          if (b.dataset.armed) {
+            delete b.dataset.armed;
+            sock.send({ type: "clear" });
+            return;
+          }
+          b.dataset.armed = "1";
+          b.textContent = "Clear the votes?";
+          setTimeout(() => {
+            delete b.dataset.armed;
+            if (state && state.phase === "closed") b.textContent = "New vote";
+          }, 3000);
+        }
+      };
+      $("#alt").onclick = () => sock.send({ type: "open" });
+
+      // ---------------------------------------------------------------- layout
+
+      function layout() {
+        const app = $("#app");
+        app.className = "ctl";
+        app.innerHTML = `
+          <div class="card wide" id="head"></div>
+          <div class="card" id="setup">
+            <h2>What are we voting on? <span id="saved" class="mini"></span></h2>
+            <input id="title" type="text" maxlength="60" placeholder="Title (optional), e.g. Best dance" autocomplete="off" />
+            <div class="list" id="opts"></div>
+            <div class="actions"><button id="add" class="ghost">+ Add option</button><button id="save">Save options</button></div>
+          </div>
+          <div class="card" id="rosterCard"><h2>Registered <span id="rosterCount"></span></h2><div class="list" id="roster"></div>
+            <div class="mini">Tap ×1/×2 to change how much a vote counts. Tap ✕ twice to remove someone.</div></div>
+          <div class="card wide"><h2>Tally <span id="tallyCount"></span></h2><div class="list" id="tally"></div></div>`;
+        for (let i = 0; i < 6; i++) addRow("");
+        $("#add").onclick = () => {
+          addRow("");
+          dirty = true;
+          $("#opts").lastElementChild.querySelector("input").focus();
+        };
+        $("#save").onclick = save;
+        $("#title").oninput = () => (dirty = true);
+      }
+
+      function addRow(value) {
+        const opts = $("#opts");
+        const n = opts.children.length + 1;
+        const row = document.createElement("div");
+        row.className = "optrow";
+        row.innerHTML = `<span class="n">${n}</span><input type="text" maxlength="40" placeholder="Team ${n}" autocomplete="off" autocapitalize="words" /><button class="x" title="Remove row">✕</button>`;
+        const input = row.querySelector("input");
+        input.value = value;
+        input.oninput = () => (dirty = true);
+        input.onkeydown = (e) => {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          const next = row.nextElementSibling;
+          if (next) next.querySelector("input").focus();
+          else save();
+        };
+        row.querySelector(".x").onclick = () => {
+          row.remove();
+          renumber();
+          dirty = true;
+        };
+        opts.appendChild(row);
+      }
+
+      function renumber() {
+        [...$("#opts").children].forEach((r, i) => {
+          r.querySelector(".n").textContent = i + 1;
+          r.querySelector("input").placeholder = `Team ${i + 1}`;
+        });
+      }
+
+      function save() {
+        const options = [...$("#opts").querySelectorAll("input")].map((i) => i.value);
+        sock.send({ type: "setup", title: $("#title").value, options });
+        dirty = false;
+      }
+
+      function fillSetup(s) {
+        $("#saved").textContent = s.options.length ? `${s.options.length} saved` : "nothing saved yet";
+        if (dirty) return;
+        $("#title").value = s.title;
+        const want = s.options.map((o) => o.name);
+        while (want.length < 6) want.push("");
+        const opts = $("#opts");
+        const rows = [...opts.children];
+        if (rows.length !== want.length) {
+          opts.innerHTML = "";
+          want.forEach(addRow);
+        } else {
+          rows.forEach((r, i) => {
+            const input = r.querySelector("input");
+            if (document.activeElement !== input) input.value = want[i];
+          });
+        }
+      }
+
+      // ---------------------------------------------------------------- render
+
+      function keyFor(s) {
+        return JSON.stringify([s.phase, s.title, s.options, s.voters, s.tally, s.winners, s.counts]);
+      }
+
+      function render() {
+        const s = state;
+        renderControls(s);
+        fillSetup(s);
+        const k = keyFor(s);
+        if (k === screenKey) return;
+        screenKey = k;
+        renderHead(s);
+        renderRoster(s);
+        renderTally(s);
+      }
+
+      function renderControls(s) {
+        $("#controls").hidden = false;
+        const next = $("#next");
+        const alt = $("#alt");
+        if (s.phase === "lobby") {
+          next.textContent = "Open voting ›";
+          next.disabled = s.options.length < 2 && !dirty;
+          alt.hidden = true;
+        } else if (s.phase === "open") {
+          next.textContent = "Close & show results";
+          next.disabled = false;
+          alt.hidden = true;
+        } else {
+          if (!next.dataset.armed) next.textContent = "New vote";
+          next.disabled = false;
+          alt.hidden = false;
+        }
+        const here = s.voters.filter((p) => p.connected).length;
+        $("#info").textContent = `${here}/${s.voters.length} here`;
+      }
+
+      function renderHead(s) {
+        const label = { lobby: "Registration open", open: "Voting is open", closed: "Final result" }[s.phase];
+        const c = s.counts;
+        $("#head").innerHTML = `<div class="head">
+            <div><span class="badge">Team vote</span><div class="phase">${label}</div>
+              <div class="mini">${c.voters} of ${c.of} voted · ${c.weighted} of ${c.ofWeighted} weighted</div></div>
+            <div class="qrbox"><div class="qr"><img alt="QR code to vote" src="/qr.svg?u=${encodeURIComponent(joinUrl)}" /></div>
+              <div><div class="mini">Vote at</div><div class="joinurl">${esc(shortUrl)}</div></div></div>
+          </div>`;
+      }
+
+      function renderRoster(s) {
+        $("#rosterCount").textContent = s.voters.length ? `${s.voters.length}` : "";
+        const root = $("#roster");
+        if (!s.voters.length) {
+          root.innerHTML = `<div class="mini">Nobody yet. Get everyone to open ${esc(shortUrl)} and type their name.</div>`;
+          return;
+        }
+        root.innerHTML = s.voters
+          .map(
+            (p) => `<div class="voter ${p.connected ? "" : "off"}">
+              <span>${esc(p.name)}<span class="st ${p.choice ? "yes" : ""}">${p.choice ? "voted" : s.phase === "open" ? "not yet" : ""}</span></span>
+              <button class="w ${p.weight === 2 ? "on" : ""}" data-w="${esc(p.id)}" data-cur="${p.weight}" title="Vote weight">×${p.weight}</button>
+              <button class="x" data-kick="${esc(p.id)}" title="Remove">✕</button></div>`,
+          )
+          .join("");
+        root.querySelectorAll("[data-w]").forEach((b) => {
+          b.onclick = () => sock.send({ type: "weight", voter: b.dataset.w, weight: b.dataset.cur === "2" ? 1 : 2 });
+        });
+        root.querySelectorAll("[data-kick]").forEach((b) => {
+          b.onclick = () => {
+            if (b.dataset.armed) return sock.send({ type: "kick", voter: b.dataset.kick });
+            b.dataset.armed = "1";
+            b.textContent = "Sure?";
+          };
+        });
+      }
+
+      function renderTally(s) {
+        const t = s.tally;
+        $("#tallyCount").textContent = t.length ? (s.phase === "closed" ? "final" : s.phase === "open" ? "live" : "") : "";
+        const root = $("#tally");
+        if (!t.length) {
+          root.innerHTML = `<div class="mini">Save some options and the tally appears here.</div>`;
+          return;
+        }
+        const max = Math.max(1, ...t.map((r) => r.total));
+        const final = s.phase === "closed";
+        root.innerHTML = t
+          .map(
+            (r) => `<div class="trow ${final && s.winners.includes(r.id) ? "win" : ""}">
+              <span>${final && s.winners.includes(r.id) ? "🏆 " : ""}${esc(r.name)}</span><span class="total">${r.total}</span>
+              <div class="meter"><i style="width:${(r.total / max) * 100}%"></i></div>
+              ${r.voters.length ? `<div class="who">${r.voters.map(esc).join(" · ")}</div>` : ""}</div>`,
+          )
+          .join("");
+      }
+    </script>
+  </body>
+</html>

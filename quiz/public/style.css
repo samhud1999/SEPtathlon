@@ -11,6 +11,8 @@
   --c1: #3b82f6;
   --c2: #eab308;
   --c3: #22a35a;
+  --c4: #f97316;
+  --c5: #ec4899;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -189,6 +191,8 @@ input:focus {
 .opt.c1 { background: var(--c1); }
 .opt.c2 { background: var(--c2); color: #1a1600; }
 .opt.c3 { background: var(--c3); }
+.opt.c4 { background: var(--c4); }
+.opt.c5 { background: var(--c5); }
 
 .opt.dim {
   opacity: 0.25;
