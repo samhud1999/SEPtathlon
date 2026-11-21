@@ -105,7 +105,7 @@ export async function computeTotals(db: DbOrTx): Promise<Map<number, PlayerTotal
 
 export async function recalcEvent(tx: DbOrTx, eventId: number): Promise<void> {
   const [event] = await tx.select().from(events).where(eq(events.id, eventId));
-  if (!event || event.scoringType === "BLOOD_MATRIX") return;
+  if (!event || event.scoringType === "DANCE_OFF") return;
 
   const rows = await tx.select().from(eventResults).where(eq(eventResults.eventId, eventId));
   if (rows.length === 0) return;

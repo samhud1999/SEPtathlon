@@ -298,7 +298,7 @@ describe("computeEventStandings — ELIMINATION", () => {
   });
 });
 
-describe("computeEventStandings — FRUIT_SPLIT and BLOOD_MATRIX", () => {
+describe("computeEventStandings — FRUIT_SPLIT and DANCE_OFF", () => {
   it("ranks fruit by lowest error and reports the computed error", () => {
     const s = byPlayer(
       computeEventStandings("FRUIT_SPLIT", 5, [
@@ -314,8 +314,8 @@ describe("computeEventStandings — FRUIT_SPLIT and BLOOD_MATRIX", () => {
     expect(s.get(9)).toMatchObject({ calculatedRank: null, basePoints: 0 });
   });
 
-  it("BLOOD_MATRIX events have no standings", () => {
-    expect(computeEventStandings("BLOOD_MATRIX", 7, [row(1), row(2)])).toEqual([]);
+  it("DANCE_OFF events have no standings", () => {
+    expect(computeEventStandings("DANCE_OFF", 7, [row(1), row(2)])).toEqual([]);
   });
 });
 

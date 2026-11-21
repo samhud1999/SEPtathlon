@@ -128,8 +128,8 @@ export async function upsertScores(
 ): Promise<StatePayload> {
   await mutate(async (tx) => {
     const event = await requireEvent(tx, eventId);
-    if (event.scoringType === "BLOOD_MATRIX") {
-      throw badRequest("Blood on the Creek is scored through matchups, not scores");
+    if (event.scoringType === "DANCE_OFF") {
+      throw badRequest("Dance on the Creek is scored per duo, not per tribute");
     }
     const names = await requirePlayers(
       tx,
@@ -208,8 +208,8 @@ export async function upsertScores(
 export async function previewScores(eventId: number, inputs: ScoreInput[]): Promise<Standing[]> {
   const db = await getDb();
   const event = await requireEvent(db, eventId);
-  if (event.scoringType === "BLOOD_MATRIX") {
-    throw badRequest("Blood on the Creek has no score preview");
+  if (event.scoringType === "DANCE_OFF") {
+    throw badRequest("Dance on the Creek has no score preview");
   }
   await requirePlayers(
     db,

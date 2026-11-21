@@ -26,7 +26,7 @@ export const EVENTS_SEED: ReadonlyArray<{
   { id: 4, slug: "rock-hurl", name: "Rock Hurl", sin: "Wrath", scoringType: "ELIMINATION" },
   { id: 5, slug: "fruit-split", name: "50/50 Fruit Split", sin: "Envy", scoringType: "FRUIT_SPLIT" },
   { id: 6, slug: "grape-bobbing", name: "Grape Bobbing", sin: "Gluttony", scoringType: "RAW_HIGH" },
-  { id: 7, slug: "blood-on-the-creek", name: "Blood on the Creek", sin: "Lust", scoringType: "BLOOD_MATRIX" },
+  { id: 7, slug: "dance-on-the-creek", name: "Dance on the Creek", sin: "Lust", scoringType: "DANCE_OFF" },
 ];
 
 export const SIN_TAGS: readonly string[] = [
@@ -38,7 +38,7 @@ export const CURSE_LEVELS = ["Clean", "Off-Hand", "Knees", "Blind Backwards"] as
 
 export const TV_MODES = ["LEADERBOARD", "LIVE_EVENT", "BLOOD_STAGE"] as const satisfies readonly TvMode[];
 export const EVENT_STATUSES = ["UPCOMING", "NEXT", "LIVE", "COMPLETED"] as const satisfies readonly EventStatus[];
-export const SCORING_TYPES = ["ELIMINATION", "RAW_HIGH", "FRUIT_SPLIT", "BLOOD_MATRIX"] as const satisfies readonly ScoringType[];
+export const SCORING_TYPES = ["ELIMINATION", "RAW_HIGH", "FRUIT_SPLIT", "DANCE_OFF"] as const satisfies readonly ScoringType[];
 export const BLOOD_CARDS = ["PURE", "BLOOD"] as const satisfies readonly BloodCard[];
 
 /**
@@ -63,6 +63,9 @@ export const BLOOD_3WAY: Readonly<Record<number, { blood: number; pure: number }
 
 /** PRD §2: Round 3 = 2× stakes. */
 export const ROUND_STAKES: Readonly<Record<number, number>> = { 1: 1, 2: 1, 3: 2 };
+
+/** Dance on the Creek: every duo is scored out of this. */
+export const DANCE_MAX_SCORE = 10;
 
 export const DEFAULT_LIVES = 3;
 export const MAX_LIVES = 9;

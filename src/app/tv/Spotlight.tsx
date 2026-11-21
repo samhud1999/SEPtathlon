@@ -10,7 +10,7 @@ const TYPE_FLAVOR: Record<string, string> = {
   ELIMINATION: "Last one standing wins",
   RAW_HIGH: "Highest score wins",
   FRUIT_SPLIT: "Closest to a perfect half wins",
-  BLOOD_MATRIX: "Pure or Blood?",
+  DANCE_OFF: "Duos dance, the Creek scores /10",
 };
 
 function effectiveRank(row: EventResultRow): number {
@@ -329,7 +329,7 @@ export default function Spotlight({
             {live.scoringType === "FRUIT_SPLIT" && (
               <FruitSplitSpot payload={payload} event={live} />
             )}
-            {live.scoringType === "BLOOD_MATRIX" && <BloodPreviewSpot payload={payload} />}
+            {live.scoringType === "DANCE_OFF" && <BloodPreviewSpot payload={payload} />}
           </div>
         </>
       )}

@@ -6,6 +6,7 @@
 
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
+import { sql } from "drizzle-orm";
 import type { PgliteDatabase } from "drizzle-orm/pglite";
 import { EVENTS_SEED } from "@/lib/constants";
 import { appState, events } from "./schema";
@@ -36,7 +37,18 @@ export async function ensureSeeded(db: DbOrTx): Promise<void> {
         status: "UPCOMING",
       })),
     )
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: events.id,
+      // The seed is canon for names/types (so renames reach existing DBs on
+      // boot); status is live tournament state and is left alone.
+      set: {
+        name: sql`excluded.name`,
+        slug: sql`excluded.slug`,
+        sin: sql`excluded.sin`,
+        scoringType: sql`excluded.scoring_type`,
+        updatedAt: new Date(),
+      },
+    });
   await db.insert(appState).values({ id: 1 }).onConflictDoNothing();
 }
 

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   RepoError,
@@ -28,6 +29,7 @@ import {
   updatePlayer,
   upsertScores,
 } from "@/db/repo";
+import { events } from "@/db/schema";
 import type { StatePayload } from "@/lib/types";
 
 beforeEach(async () => {
@@ -54,9 +56,9 @@ describe("boot + seed", () => {
     const payload = await getStatePayload();
     expect(payload.events).toHaveLength(7);
     expect(payload.events.map((e) => e.slug)).toEqual([
-      "stubby-fan", "krillion", "weekly-50", "rock-hurl", "fruit-split", "grape-bobbing", "blood-on-the-creek",
+      "stubby-fan", "krillion", "weekly-50", "rock-hurl", "fruit-split", "grape-bobbing", "dance-on-the-creek",
     ]);
-    expect(payload.events[6]?.scoringType).toBe("BLOOD_MATRIX");
+    expect(payload.events[6]?.scoringType).toBe("DANCE_OFF");
     expect(payload.players).toEqual([]);
     expect(payload.leaderboard).toEqual([]);
     expect(Object.keys(payload.eventResults).sort()).toEqual(["1", "2", "3", "4", "5", "6"]);
@@ -72,6 +74,20 @@ describe("boot + seed", () => {
     await ensureSeeded(db);
     const payload = await getStatePayload();
     expect(payload.events).toHaveLength(7);
+  });
+
+  it("re-seeding upgrades event 7's name and type but keeps its status", async () => {
+    const db = await createTestDb();
+    _setDb(db);
+    await db
+      .update(events)
+      .set({ name: "Blood on the Creek", slug: "blood-on-the-creek", scoringType: "BLOOD_MATRIX", status: "LIVE" })
+      .where(eq(events.id, 7));
+    await ensureSeeded(db);
+    const payload = await getStatePayload();
+    expect(payload.events[6]).toMatchObject({
+      id: 7, slug: "dance-on-the-creek", name: "Dance on the Creek", sin: "Lust", scoringType: "DANCE_OFF", status: "LIVE",
+    });
   });
 
   it("payload shape matches the normative fixture", async () => {

@@ -57,7 +57,7 @@ function metricFor(scoringType: ScoringType, input: StandingInput): Entry {
       const err = computeFruitErrorPct(input.weightAGrams, input.weightBGrams);
       return { input, sortValue: err == null ? null : -err, errorPct: err };
     }
-    case "BLOOD_MATRIX":
+    case "DANCE_OFF":
       return { input, sortValue: null, errorPct: null };
   }
 }
@@ -69,14 +69,14 @@ function meanPointsForRanks(ranks: number[]): number {
 
 /**
  * Rank an event's participants and compute their points (PRD §3.2–3.3).
- * Returns one Standing per input row. BLOOD_MATRIX events have no standings.
+ * Returns one Standing per input row. DANCE_OFF events have no standings.
  */
 export function computeEventStandings(
   scoringType: ScoringType,
   eventId: number,
   rows: StandingInput[],
 ): Standing[] {
-  if (scoringType === "BLOOD_MATRIX" || rows.length === 0) return [];
+  if (scoringType === "DANCE_OFF" || rows.length === 0) return [];
 
   const entries = rows.map((r) => metricFor(scoringType, r));
 

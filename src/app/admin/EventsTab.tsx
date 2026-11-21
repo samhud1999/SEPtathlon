@@ -31,7 +31,7 @@ export default function EventsTab() {
   const event = state.events.find((e) => e.id === eventId) ?? state.events[0];
   if (!event) return <p className={styles.muted}>The events have not been seeded yet.</p>;
 
-  const isBlood = event.scoringType === "BLOOD_MATRIX";
+  const isDance = event.scoringType === "DANCE_OFF";
 
   const setStatus = (status: EventStatus) => {
     if (status === event.status) return;
@@ -64,7 +64,7 @@ export default function EventsTab() {
         onChange={setStatus}
       />
 
-      {!isBlood ? (
+      {!isDance ? (
         <Seg<Mode>
           ariaLabel="Entry mode"
           options={[
@@ -76,7 +76,7 @@ export default function EventsTab() {
         />
       ) : null}
 
-      {isBlood ? (
+      {isDance ? (
         <GuidedBlood />
       ) : mode === "god" ? (
         <GodModeTable key={event.id} event={event} />

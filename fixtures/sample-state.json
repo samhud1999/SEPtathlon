@@ -10,7 +10,7 @@
     { "id": 4, "slug": "rock-hurl", "name": "Rock Hurl", "sin": "Wrath", "scoringType": "ELIMINATION", "status": "UPCOMING" },
     { "id": 5, "slug": "fruit-split", "name": "50/50 Fruit Split", "sin": "Envy", "scoringType": "FRUIT_SPLIT", "status": "UPCOMING" },
     { "id": 6, "slug": "grape-bobbing", "name": "Grape Bobbing", "sin": "Gluttony", "scoringType": "RAW_HIGH", "status": "UPCOMING" },
-    { "id": 7, "slug": "blood-on-the-creek", "name": "Blood on the Creek", "sin": "Lust", "scoringType": "BLOOD_MATRIX", "status": "UPCOMING" }
+    { "id": 7, "slug": "dance-on-the-creek", "name": "Dance on the Creek", "sin": "Lust", "scoringType": "DANCE_OFF", "status": "UPCOMING" }
   ],
   "players": [
     { "id": 1, "name": "Davo", "epithet": "The Balcony Lurker", "isActive": true, "jokerEventId": null, "rockCurseLevel": 2 },
